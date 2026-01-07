@@ -15,7 +15,7 @@ program
 program
   .command('login')
   .description('Authenticate with Oneshot via GitHub')
-  .option('--api-url <url>', 'API base URL', 'http://localhost:3000')
+  .option('--api-url <url>', 'API base URL', 'https://oneshot-web.vercel.app')
   .action(login)
 
 program
@@ -37,7 +37,7 @@ program
   .option('--tags <tags>', 'Comma-separated tags')
   .option('--before-preview-url <url>', 'Override auto-detected before preview URL')
   .option('--after-preview-url <url>', 'Override auto-detected after preview URL')
-  .option('--api-url <url>', 'API base URL', 'http://localhost:3000')
+  .option('--api-url <url>', 'API base URL', 'https://oneshot-web.vercel.app')
   .action(submit)
 
 program
