@@ -6,7 +6,7 @@ import type { MarkdownConfig, McpServer, PluginInfo, ModelParameters, TokenUsage
 interface ClaudeMessage {
   type: string
   role?: string
-  content?: string | { type: string; text?: string }[]
+  content?: string | { type: string; text?: string; thinking?: string }[]
   model?: string
   timestamp?: string
   usage?: {
@@ -16,6 +16,9 @@ interface ClaudeMessage {
     cache_creation_input_tokens?: number
   }
   message?: {
+    role?: string
+    content?: string | { type: string; text?: string; thinking?: string }[]
+    model?: string
     usage?: {
       input_tokens?: number
       output_tokens?: number
@@ -321,17 +324,21 @@ export async function extractSession(sessionPath: string, projectPath: string): 
       const msg = JSON.parse(line) as ClaudeMessage
       messages.push(msg)
 
-      // Extract user prompts
-      if (msg.role === 'user' || msg.type === 'human') {
-        const text = extractText(msg.content)
+      // Extract user prompts - handle both direct and nested message structure
+      const msgRole = msg.role || msg.message?.role
+      const msgContent = msg.content || msg.message?.content
+
+      if (msg.type === 'user' || msgRole === 'user') {
+        const text = extractText(msgContent)
         if (text && !userPrompt) {
           userPrompt = text
         }
       }
 
-      // Extract model info
-      if (msg.model) {
-        model = msg.model
+      // Extract model info - handle both direct and nested
+      const msgModel = msg.model || msg.message?.model
+      if (msgModel) {
+        model = msgModel
       }
 
       // Extract system prompt
