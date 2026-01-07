@@ -2,8 +2,10 @@ import { db } from '@/db'
 import { shots, users } from '@/db/schema'
 import { desc, eq, ilike, or, and, sql } from 'drizzle-orm'
 import Link from 'next/link'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface Props {
   searchParams: {
@@ -22,6 +24,8 @@ function formatDiffPreview(diff: string): string {
 }
 
 export default async function GalleryPage({ searchParams }: Props) {
+  noStore() // Disable all caching for this page
+
   const { q, harness, model, type, sort = 'newest' } = searchParams
 
   // Determine sort order
