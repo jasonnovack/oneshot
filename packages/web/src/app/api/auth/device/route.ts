@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
       expiresAt,
     })
 
-    // Derive base URL from request or env
+    // Derive base URL - prefer NEXTAUTH_URL for OAuth compatibility
     const host = request.headers.get('host') || request.nextUrl.host
     const protocol = host?.includes('localhost') ? 'http' : 'https'
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-      || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`)
+    const baseUrl = process.env.NEXTAUTH_URL
+      || process.env.NEXT_PUBLIC_BASE_URL
       || `${protocol}://${host}`
 
     return NextResponse.json({
