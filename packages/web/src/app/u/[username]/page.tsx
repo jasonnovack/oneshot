@@ -1,6 +1,6 @@
 import { db } from '@/db'
-import { users, shots } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { users, shots, type Shot } from '@/db/schema'
+import { eq, desc, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -28,10 +28,11 @@ export default async function UserProfilePage({ params }: Props) {
     notFound()
   }
 
+  // Use raw SQL to work around drizzle UUID comparison issue on Vercel
   const userShots = await db
     .select()
     .from(shots)
-    .where(eq(shots.userId, user.id))
+    .where(sql`${shots.userId} = ${user.id}::uuid`)
     .orderBy(desc(shots.createdAt))
     .limit(50)
 

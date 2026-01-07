@@ -1,6 +1,6 @@
 import { db } from '@/db'
 import { shots, users } from '@/db/schema'
-import { desc, eq, ilike, or, and, inArray } from 'drizzle-orm'
+import { desc, eq, ilike, or, and, sql } from 'drizzle-orm'
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
 import { GalleryFilters } from '@/components/GalleryFilters'
@@ -81,7 +81,7 @@ export default async function GalleryPage({ searchParams }: Props) {
   // Then fetch users for those shots
   const userIds = shotsResult.map(s => s.userId).filter(Boolean) as string[]
   const usersResult = userIds.length > 0
-    ? await db.select().from(users).where(inArray(users.id, userIds))
+    ? await db.select().from(users).where(sql`${users.id} IN (${sql.join(userIds.map(id => sql`${id}::uuid`), sql`, `)})`)
     : []
 
   const usersMap = new Map(usersResult.map(u => [u.id, u]))
