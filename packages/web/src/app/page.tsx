@@ -1,6 +1,7 @@
 import { db } from '@/db'
 import { shots, users } from '@/db/schema'
 import { desc, eq, ilike, or, and, sql } from 'drizzle-orm'
+// Note: ilike is still available if needed for search functionality
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
 import { GalleryFilters } from '@/components/GalleryFilters'
@@ -13,10 +14,8 @@ interface Props {
   searchParams: {
     q?: string
     harness?: string
-    model?: string
     type?: string
     sort?: string
-    help?: string
   }
 }
 
@@ -28,7 +27,7 @@ function formatDiffPreview(diff: string): string {
 export default async function GalleryPage({ searchParams }: Props) {
   noStore() // Disable all caching for this page
 
-  const { q, harness, model, type, sort = 'newest' } = searchParams
+  const { q, harness, type, sort = 'newest' } = searchParams
 
   // Determine sort order
   const getOrderBy = () => {
@@ -57,10 +56,6 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   if (harness) {
     conditions.push(eq(shots.harness, harness))
-  }
-
-  if (model) {
-    conditions.push(ilike(shots.model, `%${model}%`))
   }
 
   if (type) {
@@ -112,66 +107,85 @@ export default async function GalleryPage({ searchParams }: Props) {
       />
 
       {allShots.length === 0 ? (
-        <p style={{ color: 'var(--muted)', marginTop: '2rem' }}>
-          {q || harness || model || type
-            ? 'No shots match your filters.'
-            : 'No shots yet. Submit your first shot with the CLI: oneshot submit'}
-        </p>
+        <div className="empty-state">
+          <p>
+            {q || harness || type
+              ? 'No shots match your filters.'
+              : 'No shots yet. Submit your first shot with the CLI:'}
+          </p>
+          {!(q || harness || type) && (
+            <code>oneshot submit</code>
+          )}
+        </div>
       ) : (
         <div className="shots-grid">
           {allShots.map(({ shot, user }) => (
-            <div key={shot.id} className="shot-card">
-              {/* Screenshot thumbnail using thum.io */}
-              {shot.afterPreviewUrl && (
+            <article key={shot.id} className="shot-card">
+              {/* Screenshot thumbnail */}
+              {shot.afterPreviewUrl ? (
                 <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
                   <img
-                    src={`https://image.thum.io/get/width/600/crop/400/${shot.afterPreviewUrl}`}
+                    src={`https://image.thum.io/get/width/720/crop/450/${shot.afterPreviewUrl}`}
                     alt={`Preview of ${shot.title}`}
                     className="shot-thumbnail"
                     loading="lazy"
                   />
                 </Link>
+              ) : (
+                <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
+                  <div className="shot-thumbnail-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="m9 9 6 6M15 9l-6 6" />
+                    </svg>
+                  </div>
+                </Link>
               )}
-              <Link href={`/shots/${shot.id}`}>
-                <h2>{shot.title}</h2>
-              </Link>
-              <div className="shot-meta">
-                {user ? (
-                  <Link href={`/u/${user.username}`} className="author-link author-with-avatar">
-                    {user.avatarUrl && (
-                      <img src={user.avatarUrl} alt={user.username} className="author-avatar" />
-                    )}
-                    @{user.username}
-                  </Link>
-                ) : (
-                  <span className="anonymous-author">Anonymous</span>
-                )}
-                <span className="shot-date">
-                  {(() => {
-                    const d = new Date(shot.createdAt)
-                    return d.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-                    })
-                  })()}
-                </span>
-                <span className="badge">{shot.harness}</span>
-                <span className="badge">{shot.model}</span>
-                <span className="badge">{shot.type}</span>
-                <span className="stats">
-                  <span title="Stars">★ {shot.starCount || 0}</span>
-                  <span title="Comments">💬 {shot.commentCount || 0}</span>
-                </span>
+
+              {/* Card content */}
+              <div className="shot-card-content">
+                <Link href={`/shots/${shot.id}`}>
+                  <h2>{shot.title}</h2>
+                </Link>
+                <div className="shot-meta">
+                  {user ? (
+                    <Link href={`/u/${user.username}`} className="author-link author-with-avatar">
+                      {user.avatarUrl && (
+                        <img src={user.avatarUrl} alt={user.username} className="author-avatar" />
+                      )}
+                      @{user.username}
+                    </Link>
+                  ) : (
+                    <span className="anonymous-author">Anonymous</span>
+                  )}
+                  <span className="shot-date">
+                    {(() => {
+                      const d = new Date(shot.createdAt)
+                      return d.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                      })
+                    })()}
+                  </span>
+                  <span className="badge">{shot.harness}</span>
+                  <span className="badge">{shot.type}</span>
+                  <span className="stats">
+                    <span title="Stars">★ {shot.starCount || 0}</span>
+                    <span title="Comments">💬 {shot.commentCount || 0}</span>
+                  </span>
+                </div>
               </div>
+
+              {/* Diff preview */}
               <Link href={`/shots/${shot.id}`} className="diff-preview-link">
                 <div className="diff-preview">
                   {formatDiffPreview(shot.diff).split('\n').map((line, i) => (
                     <div
                       key={i}
                       className={
-                        line.startsWith('+') ? 'diff-add' :
-                        line.startsWith('-') ? 'diff-remove' : ''
+                        line.startsWith('+') && !line.startsWith('+++') ? 'diff-add' :
+                        line.startsWith('-') && !line.startsWith('---') ? 'diff-remove' : ''
                       }
                     >
                       {line}
@@ -179,7 +193,7 @@ export default async function GalleryPage({ searchParams }: Props) {
                   ))}
                 </div>
               </Link>
-            </div>
+            </article>
           ))}
         </div>
       )}

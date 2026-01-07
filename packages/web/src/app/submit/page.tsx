@@ -72,11 +72,11 @@ git commit -m "Your descriptive commit message"</code></pre>
                 vercel.com/account/tokens
               </a>
             </p>
-            <p style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '4px', borderLeft: '3px solid #fbbf24' }}>
+            <div className="warning-panel">
               <strong>Important:</strong> Vercel preview deployments must be public for viewers to see them.
               Go to Project Settings → Deployment Protection and set it to "Only Preview Deployments from a PR"
               or disable protection entirely.
-            </p>
+            </div>
           </div>
         </div>
 

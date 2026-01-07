@@ -15,11 +15,10 @@ export function GalleryFilters({ harnessOptions, typeOptions }: Props) {
 
   const q = searchParams.get('q') || ''
   const harness = searchParams.get('harness') || ''
-  const model = searchParams.get('model') || ''
   const type = searchParams.get('type') || ''
   const sort = searchParams.get('sort') || 'newest'
 
-  const hasFilters = q || harness || model || type
+  const hasFilters = q || harness || type
 
   const updateParams = useCallback((key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -69,14 +68,6 @@ export function GalleryFilters({ harnessOptions, typeOptions }: Props) {
           <option key={t} value={t}>{t}</option>
         ))}
       </select>
-      <input
-        type="text"
-        placeholder="Model..."
-        defaultValue={model}
-        className="search-input"
-        style={{ width: '150px' }}
-        onChange={(e) => handleTextChange('model', e.target.value)}
-      />
       <select
         value={sort}
         className="filter-select"
@@ -87,7 +78,12 @@ export function GalleryFilters({ harnessOptions, typeOptions }: Props) {
         <option value="comments">Most Discussed</option>
       </select>
       {hasFilters && (
-        <Link href="/" className="clear-btn">Clear</Link>
+        <Link href="/" className="clear-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6 6 18M6 6l12 12"/>
+          </svg>
+          Clear filters
+        </Link>
       )}
     </div>
   )

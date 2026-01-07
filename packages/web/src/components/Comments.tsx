@@ -99,24 +99,30 @@ export function Comments({ shotId }: CommentsProps) {
       )}
 
       {loading ? (
-        <p className="loading">Loading comments...</p>
+        <div className="loading">Loading comments...</div>
       ) : comments.length === 0 ? (
-        <p className="no-comments">No comments yet. Be the first!</p>
+        <div className="no-comments">No comments yet. Be the first to share your thoughts!</div>
       ) : (
         <div className="comments-list">
           {comments.map(({ comment, user }) => (
-            <div key={comment.id} className="comment">
+            <article key={comment.id} className="comment">
               <div className="comment-header">
-                {user?.avatarUrl && (
+                {user?.avatarUrl ? (
                   <img src={user.avatarUrl} alt={user.username} className="comment-avatar" />
+                ) : (
+                  <div className="comment-avatar" style={{ background: 'var(--surface-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                    {user?.username?.[0]?.toUpperCase() || '?'}
+                  </div>
                 )}
-                <Link href={`/u/${user?.username}`} className="comment-author">
-                  @{user?.username}
-                </Link>
-                <span className="comment-date">{formatDate(comment.createdAt)}</span>
+                <div className="comment-meta">
+                  <Link href={`/u/${user?.username}`} className="comment-author">
+                    @{user?.username}
+                  </Link>
+                  <span className="comment-date">{formatDate(comment.createdAt)}</span>
+                </div>
               </div>
               <p className="comment-content">{comment.content}</p>
-            </div>
+            </article>
           ))}
         </div>
       )}
