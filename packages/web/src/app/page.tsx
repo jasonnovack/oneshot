@@ -121,11 +121,11 @@ export default async function GalleryPage({ searchParams }: Props) {
         <div className="shots-grid">
           {allShots.map(({ shot, user }) => (
             <div key={shot.id} className="shot-card">
-              {/* Screenshot thumbnail */}
+              {/* Screenshot thumbnail - cache busts daily */}
               {shot.afterPreviewUrl && (
                 <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
                   <img
-                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=600`}
+                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=600&v=${Math.floor(Date.now() / 86400000)}`}
                     alt={`Preview of ${shot.title}`}
                     className="shot-thumbnail"
                     loading="lazy"
