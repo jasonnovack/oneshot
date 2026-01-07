@@ -180,12 +180,14 @@ export async function submit(options: SubmitOptions) {
     }
   }
 
-  // Prepare payload with enhanced session data
+  // Prepare payload with session metadata (exclude full conversation to reduce payload size)
+  const { messages, ...sessionMetadata } = session.sessionData as { messages?: unknown[], [key: string]: unknown }
   const enhancedSessionData = {
-    ...session.sessionData,
+    ...sessionMetadata,
+    messageCount: Array.isArray(messages) ? messages.length : undefined,
     markdownConfigs: session.markdownConfigs,
     mcpServers: session.mcpServers,
-    systemPrompt: session.systemPrompt,
+    systemPrompt: session.systemPrompt ? session.systemPrompt.slice(0, 1000) + '...' : undefined,
     modelParameters: session.modelParameters,
     tokenUsage: session.tokenUsage,
     plugins: session.plugins,
