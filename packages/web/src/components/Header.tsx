@@ -11,6 +11,9 @@ export function Header() {
       <Link href="/" className="logo">Oneshot</Link>
       <nav>
         <Link href="/">Gallery</Link>
+        <a href="https://github.com/jasonnovack/oneshot" target="_blank" rel="noopener noreferrer">
+          GitHub
+        </a>
         {status === 'loading' ? (
           <span style={{ marginLeft: '2rem', color: 'var(--muted)' }}>...</span>
         ) : session ? (

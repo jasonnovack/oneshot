@@ -36,7 +36,7 @@ export default async function ShotDetailPage({ params }: Props) {
         <div>
           <h1>{shot.title}</h1>
           <div className="shot-meta">
-            {user && (
+            {user ? (
               <>
                 <Link href={`/u/${user.username}`} className="author-link">
                   @{user.username}
@@ -62,7 +62,16 @@ export default async function ShotDetailPage({ params }: Props) {
                   </a>
                 )}
               </>
+            ) : (
+              <span className="anonymous-author">Anonymous</span>
             )}
+            <span className="shot-date">
+              {new Date(shot.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
             <span className="badge">{shot.harness}</span>
             <span className="badge">{shot.model}</span>
             <span className="badge">{shot.type}</span>

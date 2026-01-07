@@ -703,6 +703,13 @@ h1 {
   font-size: 0.8rem;
 }
 
+/* Anonymous author */
+.anonymous-author {
+  color: var(--muted);
+  font-style: italic;
+  margin-right: 0.5rem;
+}
+
 /* Preview links */
 .preview-links {
   display: flex;
@@ -724,4 +731,30 @@ h1 {
 .preview-link:hover {
   background: rgba(74, 222, 128, 0.2);
   text-decoration: none;
+}
+
+/* Welcome banner */
+.welcome-banner {
+  background: linear-gradient(135deg, rgba(0, 112, 243, 0.15) 0%, rgba(0, 112, 243, 0.05) 100%);
+  border: 1px solid rgba(0, 112, 243, 0.3);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.welcome-banner h1 {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-banner p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
 }
