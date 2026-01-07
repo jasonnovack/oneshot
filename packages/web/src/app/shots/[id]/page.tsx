@@ -40,7 +40,10 @@ export default async function ShotDetailPage({ params }: Props) {
           <div className="shot-meta">
             {user ? (
               <>
-                <Link href={`/u/${user.username}`} className="author-link">
+                <Link href={`/u/${user.username}`} className="author-link author-with-avatar">
+                  {user.avatarUrl && (
+                    <img src={user.avatarUrl} alt={user.username} className="author-avatar" />
+                  )}
                   @{user.username}
                 </Link>
                 <a
@@ -151,6 +154,39 @@ export default async function ShotDetailPage({ params }: Props) {
           </a>
         </div>
       </div>
+
+      {/* Screenshot Preview */}
+      {shot.afterPreviewUrl && (
+        <div className="screenshot-preview">
+          <h3>Preview</h3>
+          <div className="screenshot-container">
+            {shot.beforePreviewUrl && (
+              <div className="screenshot-item">
+                <span className="screenshot-label">Before</span>
+                <a href={shot.beforePreviewUrl} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.beforePreviewUrl)}?w=800`}
+                    alt="Before preview"
+                    className="screenshot-image"
+                    loading="lazy"
+                  />
+                </a>
+              </div>
+            )}
+            <div className="screenshot-item">
+              <span className="screenshot-label">{shot.beforePreviewUrl ? 'After' : 'Live Preview'}</span>
+              <a href={shot.afterPreviewUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=800`}
+                  alt="After preview"
+                  className="screenshot-image"
+                  loading="lazy"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       <h3 style={{ marginTop: '2rem' }}>Diff</h3>
       <div className="full-diff">

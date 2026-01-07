@@ -121,12 +121,26 @@ export default async function GalleryPage({ searchParams }: Props) {
         <div className="shots-grid">
           {allShots.map(({ shot, user }) => (
             <div key={shot.id} className="shot-card">
+              {/* Screenshot thumbnail */}
+              {shot.afterPreviewUrl && (
+                <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
+                  <img
+                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=600`}
+                    alt={`Preview of ${shot.title}`}
+                    className="shot-thumbnail"
+                    loading="lazy"
+                  />
+                </Link>
+              )}
               <Link href={`/shots/${shot.id}`}>
                 <h2>{shot.title}</h2>
               </Link>
               <div className="shot-meta">
                 {user ? (
-                  <Link href={`/u/${user.username}`} className="author-link">
+                  <Link href={`/u/${user.username}`} className="author-link author-with-avatar">
+                    {user.avatarUrl && (
+                      <img src={user.avatarUrl} alt={user.username} className="author-avatar" />
+                    )}
                     @{user.username}
                   </Link>
                 ) : (
