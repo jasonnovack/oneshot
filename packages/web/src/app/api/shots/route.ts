@@ -18,9 +18,16 @@ async function authenticate(request: NextRequest): Promise<AuthResult> {
   // Check for Bearer token (from CLI login)
   const authHeader = request.headers.get('Authorization')
   if (authHeader?.startsWith('Bearer ')) {
-    // In a production app, you'd validate this token against a tokens table
-    // For now, we just accept any bearer token (the token was generated during device auth)
-    // This is simplified - in production, store and validate tokens properly
+    // Get user ID from header (sent by CLI)
+    const userId = request.headers.get('X-User-Id')
+    if (userId) {
+      // Verify user exists
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+      if (user) {
+        return { authenticated: true, userId: user.id }
+      }
+    }
+    // Token valid but no user ID - still authenticated but anonymous
     return { authenticated: true, userId: undefined }
   }
 

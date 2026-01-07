@@ -221,6 +221,9 @@ export async function submit(options: SubmitOptions) {
 
   if (config?.token) {
     headers['Authorization'] = `Bearer ${config.token}`
+    if (config.user?.id) {
+      headers['X-User-Id'] = config.user.id
+    }
     console.log(`   Authenticated as @${config.user.username}`)
   } else {
     const apiKey = process.env.ONESHOT_API_KEY || ''
