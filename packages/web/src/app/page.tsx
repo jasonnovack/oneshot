@@ -12,6 +12,7 @@ interface Props {
     model?: string
     type?: string
     sort?: string
+    help?: string
   }
 }
 
