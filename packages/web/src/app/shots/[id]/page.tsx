@@ -37,9 +37,31 @@ export default async function ShotDetailPage({ params }: Props) {
           <h1>{shot.title}</h1>
           <div className="shot-meta">
             {user && (
-              <Link href={`/u/${user.username}`} className="author-link">
-                @{user.username}
-              </Link>
+              <>
+                <Link href={`/u/${user.username}`} className="author-link">
+                  @{user.username}
+                </Link>
+                <a
+                  href={`https://github.com/${user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="social-link"
+                  title="GitHub"
+                >
+                  GitHub
+                </a>
+                {user.xUsername && (
+                  <a
+                    href={`https://x.com/${user.xUsername}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="social-link"
+                    title="X/Twitter"
+                  >
+                    @{user.xUsername}
+                  </a>
+                )}
+              </>
             )}
             <span className="badge">{shot.harness}</span>
             <span className="badge">{shot.model}</span>

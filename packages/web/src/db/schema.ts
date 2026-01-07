@@ -8,6 +8,8 @@ export const users = pgTable('users', {
   name: text('name'),
   avatarUrl: text('avatar_url'),
   email: text('email'),
+  xUsername: text('x_username'), // Twitter/X handle (without @)
+  bio: text('bio'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

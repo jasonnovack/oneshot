@@ -42,7 +42,18 @@ export default async function UserProfilePage({ params }: Props) {
         <div>
           <h1>@{user.username}</h1>
           {user.name && <p style={{ color: 'var(--muted)' }}>{user.name}</p>}
-          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+          {user.bio && <p style={{ marginTop: '0.5rem' }}>{user.bio}</p>}
+          <div className="user-links">
+            <a href={`https://github.com/${user.username}`} target="_blank" rel="noopener noreferrer">
+              GitHub ↗
+            </a>
+            {user.xUsername && (
+              <a href={`https://x.com/${user.xUsername}`} target="_blank" rel="noopener noreferrer">
+                @{user.xUsername} on X ↗
+              </a>
+            )}
+          </div>
+          <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginTop: '0.5rem' }}>
             {userShots.length} shot{userShots.length !== 1 ? 's' : ''}
           </p>
         </div>
