@@ -21,7 +21,7 @@ function generateUserCode(): string {
 }
 
 // POST /api/auth/device - Create a new device code
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
     const deviceCode = generateDeviceCode()
     const userCode = generateUserCode()
@@ -33,7 +33,11 @@ export async function POST() {
       expiresAt,
     })
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    // Derive base URL from request or env
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+      || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`)
+      || request.headers.get('origin')
+      || `${request.nextUrl.protocol}//${request.nextUrl.host}`
 
     return NextResponse.json({
       device_code: deviceCode,
