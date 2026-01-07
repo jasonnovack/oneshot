@@ -98,8 +98,6 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   const typeOptions = ['feature', 'fix', 'refactor', 'ui', 'test', 'docs', 'other']
 
-  const showGettingStarted = allShots.length === 0 || searchParams.help === 'true'
-
   return (
     <div>
       {/* Welcome Banner */}
@@ -108,22 +106,6 @@ export default async function GalleryPage({ searchParams }: Props) {
         <p>
           The place to showcase and discover verified AI code transformations.
           One prompt, one commit, fully reproducible.
-        </p>
-      </div>
-
-      {/* Getting Started - Always visible */}
-      <div className="getting-started">
-        <h2>How to Submit a Shot</h2>
-        <ol>
-          <li>Use an AI coding tool (Claude Code, Cursor, or Codex) to make a code change</li>
-          <li>Commit your changes: <code>git add . && git commit -m "Your change"</code></li>
-          <li>Install the CLI: <code>npm install -g @oneshot/cli</code></li>
-          <li>Submit: <code>oneshot submit --title "Your title" --type feature</code></li>
-        </ol>
-        <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '1rem' }}>
-          The CLI auto-detects your AI session and extracts the prompt, model, and settings.
-          <br />
-          Types: <code>feature</code> | <code>fix</code> | <code>refactor</code> | <code>ui</code> | <code>test</code> | <code>docs</code> | <code>other</code>
         </p>
       </div>
 

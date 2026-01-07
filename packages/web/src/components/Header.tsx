@@ -11,6 +11,7 @@ export function Header() {
       <Link href="/" className="logo">Oneshot</Link>
       <nav>
         <Link href="/">Gallery</Link>
+        <Link href="/submit">Submit</Link>
         <a href="https://github.com/jasonnovack/oneshot" target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
