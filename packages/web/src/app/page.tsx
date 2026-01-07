@@ -4,6 +4,7 @@ import { desc, eq, ilike, or, and, inArray } from 'drizzle-orm'
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
 import { GalleryFilters } from '@/components/GalleryFilters'
+import { WelcomeBanner } from '@/components/WelcomeBanner'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -100,16 +101,9 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   return (
     <div>
-      {/* Welcome Banner */}
-      <div className="welcome-banner">
-        <h1>Welcome to Oneshot</h1>
-        <p>
-          The place to showcase and discover verified AI code transformations.
-          One prompt, one commit, fully reproducible.
-        </p>
-      </div>
+      <WelcomeBanner />
 
-      <h2 style={{ marginTop: '2rem', marginBottom: '1rem' }}>Gallery</h2>
+      <h2 style={{ marginBottom: '1rem' }}>Gallery</h2>
 
       {/* Filters */}
       <GalleryFilters
