@@ -356,13 +356,11 @@ export async function extractSession(sessionPath: string, projectPath: string): 
 
       // Extract user prompts - be strict about what constitutes a user message
       // Only accept messages that are explicitly marked as user type
-      // and don't have assistant-like characteristics
-      const isUserMessage = msg.type === 'user' && msg.role !== 'assistant'
+      const isUserMessage = msg.type === 'user'
 
       if (isUserMessage) {
-        // For user messages, extract only the direct content (not nested message content)
-        // as nested content might be assistant responses
-        const text = extractText(msg.content)
+        // User messages have content in msg.message.content
+        const text = extractText(msg.message?.content)
 
         // Skip short confirmation messages and common AI-interaction phrases
         const skipPhrases = [
