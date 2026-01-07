@@ -156,11 +156,14 @@ export default async function GalleryPage({ searchParams }: Props) {
                     <span className="anonymous-author">Anonymous</span>
                   )}
                   <span className="shot-date">
-                    {new Date(shot.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: shot.createdAt.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-                    })}
+                    {(() => {
+                      const d = new Date(shot.createdAt)
+                      return d.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                      })
+                    })()}
                   </span>
                   <span className="badge">{shot.harness}</span>
                   <span className="badge">{shot.model}</span>
