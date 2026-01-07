@@ -330,7 +330,9 @@ export async function extractSession(sessionPath: string, projectPath: string): 
 
       if (msg.type === 'user' || msgRole === 'user') {
         const text = extractText(msgContent)
-        if (text && !userPrompt) {
+        // Keep the longest user prompt (most likely to be the main instruction)
+        // Short messages like "yes", "continue", "planning mode" are likely not the main prompt
+        if (text && text.length > userPrompt.length) {
           userPrompt = text
         }
       }

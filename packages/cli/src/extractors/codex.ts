@@ -280,21 +280,21 @@ export async function extractSession(sessionPath: string, projectPath: string): 
       const event = JSON.parse(line) as CodexEvent
       events.push(event)
 
-      // Extract user prompts
+      // Extract user prompts - keep the longest one (most likely to be the main instruction)
       // Codex uses various event types for user input
       if (event.type === 'user_prompt' || event.type === 'human') {
-        if (event.content && !userPrompt) {
+        if (event.content && event.content.length > userPrompt.length) {
           userPrompt = event.content
         }
       }
 
       // Some Codex versions use message format
-      if (event.message?.role === 'user' && !userPrompt) {
+      if (event.message?.role === 'user' && event.message.content.length > userPrompt.length) {
         userPrompt = event.message.content
       }
 
       // Extract from role-based format
-      if (event.role === 'user' && event.content && !userPrompt) {
+      if (event.role === 'user' && event.content && event.content.length > userPrompt.length) {
         userPrompt = event.content
       }
 

@@ -361,11 +361,14 @@ export async function extractSession(dbPath: string, projectPath: string): Promi
       maxTokens = conversation.maxTokens
     }
 
-    // Find the first user message as the prompt
-    const userMessage = messages.find(m => m.role === 'user')
-    if (!userMessage) {
+    // Find the longest user message as the prompt (most likely to be the main instruction)
+    const userMessages = messages.filter(m => m.role === 'user')
+    if (userMessages.length === 0) {
       return null
     }
+    const userMessage = userMessages.reduce((longest, current) =>
+      current.content.length > longest.content.length ? current : longest
+    )
 
     // Extract model from messages if not found
     if (model === 'unknown') {
