@@ -1,5 +1,13 @@
 # Claude Code Instructions for Oneshot
 
+## Always Commit at End of Every Prompt
+
+After completing any prompt that makes changes to the codebase, always commit and push:
+
+```bash
+git add -A && git commit -m "<descriptive message>" && git push
+```
+
 ## After Completing Impressive Work
 
 When you complete a prompt that is impressive in scope & impact to the app (new features, significant fixes, major refactors), run:
