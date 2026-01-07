@@ -68,24 +68,17 @@ export async function submit(options: SubmitOptions) {
   const afterCommit = log.all[0]
 
   // Find the "before" commit - the most recent commit BEFORE the session started
+  // Skip HEAD (log.all[0]) since that's our "after" commit
   let beforeCommit = log.all[1] // Default to HEAD~1
   if (session?.timestamp) {
     const sessionTime = session.timestamp.getTime()
-    // Find the first commit that predates the session
-    for (const commit of log.all) {
+    // Find the first commit (excluding HEAD) that predates the session
+    for (let i = 1; i < log.all.length; i++) {
+      const commit = log.all[i]
       const commitTime = new Date(commit.date).getTime()
       if (commitTime < sessionTime) {
         beforeCommit = commit
         break
-      }
-    }
-    if (beforeCommit === log.all[1] && log.all.length > 2) {
-      // Check if we found a better match
-      const foundBetterMatch = log.all.some((commit, i) =>
-        i > 1 && new Date(commit.date).getTime() < sessionTime
-      )
-      if (foundBetterMatch) {
-        console.log(`   Session started: ${session.timestamp.toISOString()}`)
       }
     }
   }

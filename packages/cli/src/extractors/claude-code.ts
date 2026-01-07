@@ -362,15 +362,19 @@ export async function extractSession(sessionPath: string, projectPath: string): 
         // User messages have content in msg.message.content
         const text = extractText(msg.message?.content)
 
-        // Skip short confirmation messages and common AI-interaction phrases
+        // Skip short confirmation messages, system messages, and common AI-interaction phrases
         const skipPhrases = [
           'yes', 'no', 'ok', 'okay', 'continue', 'planning mode',
           'proceed', 'go ahead', 'sure', 'thanks', 'thank you'
         ]
+        const skipPrefixes = [
+          'this session is being continued',  // Context continuation
+          'limit is reset',                   // Context limit message
+        ]
         const normalizedText = text.toLowerCase().trim()
         const isSkippable = skipPhrases.some(phrase =>
           normalizedText === phrase || normalizedText === phrase + '.'
-        )
+        ) || skipPrefixes.some(prefix => normalizedText.startsWith(prefix))
 
         // Keep the longest non-skippable user prompt
         if (text && text.length > userPrompt.length && !isSkippable) {
