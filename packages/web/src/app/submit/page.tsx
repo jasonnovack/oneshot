@@ -61,6 +61,28 @@ git commit -m "Your descriptive commit message"</code></pre>
         <div className="step">
           <div className="step-number">5</div>
           <div className="step-content">
+            <h3>Connect Vercel (Optional)</h3>
+            <p>
+              If your project deploys to Vercel, connect it to auto-detect preview URLs:
+            </p>
+            <pre><code>oneshot vercel-login</code></pre>
+            <p className="note">
+              You'll need a Vercel API token from{' '}
+              <a href="https://vercel.com/account/tokens" target="_blank" rel="noopener noreferrer">
+                vercel.com/account/tokens
+              </a>
+            </p>
+            <p style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '4px', borderLeft: '3px solid #fbbf24' }}>
+              <strong>Important:</strong> Vercel preview deployments must be public for viewers to see them.
+              Go to Project Settings → Deployment Protection and set it to "Only Preview Deployments from a PR"
+              or disable protection entirely.
+            </p>
+          </div>
+        </div>
+
+        <div className="step">
+          <div className="step-number">6</div>
+          <div className="step-content">
             <h3>Submit Your Shot</h3>
             <p>
               Run the submit command from your repo root:

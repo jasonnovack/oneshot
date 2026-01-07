@@ -166,13 +166,50 @@ export async function submit(options: SubmitOptions) {
       )
 
       if (deployments.beforeUrl || deployments.afterUrl) {
-        if (deployments.beforeUrl && !beforePreviewUrl) {
-          beforePreviewUrl = deployments.beforeUrl
-          console.log(`   ✓ Before: ${beforePreviewUrl}`)
-        }
-        if (deployments.afterUrl && !afterPreviewUrl) {
-          afterPreviewUrl = deployments.afterUrl
-          console.log(`   ✓ After: ${afterPreviewUrl}`)
+        // Check public accessibility
+        const hasPrivateDeployments =
+          (deployments.beforeUrl && !deployments.beforePublic) ||
+          (deployments.afterUrl && !deployments.afterPublic)
+
+        if (hasPrivateDeployments) {
+          console.log('\n   ⚠️  Vercel deployments require authentication!')
+          console.log('   Viewers won\'t be able to see the preview without Vercel access.\n')
+          console.log('   To make deployments public:')
+          console.log('   1. Go to your Vercel project settings')
+          console.log('   2. Navigate to "Deployment Protection"')
+          console.log('   3. Set protection to "Only Preview Deployments from a PR"')
+          console.log('      or disable protection entirely\n')
+
+          const continueAnyway = await prompt('   Continue without preview URLs? (y/N): ')
+          if (continueAnyway.toLowerCase() !== 'y') {
+            console.log('\n   Skipping preview URLs. Fix Vercel settings and try again.')
+            beforePreviewUrl = undefined
+            afterPreviewUrl = undefined
+          } else {
+            // Include URLs but warn they're private
+            if (deployments.beforeUrl && !beforePreviewUrl) {
+              beforePreviewUrl = deployments.beforePublic ? deployments.beforeUrl : undefined
+              if (deployments.beforePublic) {
+                console.log(`   ✓ Before: ${beforePreviewUrl}`)
+              }
+            }
+            if (deployments.afterUrl && !afterPreviewUrl) {
+              afterPreviewUrl = deployments.afterPublic ? deployments.afterUrl : undefined
+              if (deployments.afterPublic) {
+                console.log(`   ✓ After: ${afterPreviewUrl}`)
+              }
+            }
+          }
+        } else {
+          // All deployments are public
+          if (deployments.beforeUrl && !beforePreviewUrl) {
+            beforePreviewUrl = deployments.beforeUrl
+            console.log(`   ✓ Before: ${beforePreviewUrl}`)
+          }
+          if (deployments.afterUrl && !afterPreviewUrl) {
+            afterPreviewUrl = deployments.afterUrl
+            console.log(`   ✓ After: ${afterPreviewUrl}`)
+          }
         }
       } else {
         console.log('   ⚠️  No Vercel deployments found for these commits')

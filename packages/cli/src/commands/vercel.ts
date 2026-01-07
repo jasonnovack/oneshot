@@ -199,22 +199,56 @@ async function findDeploymentForCommit(
 }
 
 /**
+ * Check if a deployment URL is publicly accessible (no Vercel auth required)
+ */
+export async function checkDeploymentPublicAccess(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      method: 'HEAD',
+      redirect: 'manual', // Don't follow redirects
+    })
+
+    // If we get redirected to Vercel's auth page, it's not public
+    const location = response.headers.get('location') || ''
+    if (location.includes('vercel.com/login') || location.includes('vercel.com/sso')) {
+      return false
+    }
+
+    // 401/403 means auth required
+    if (response.status === 401 || response.status === 403) {
+      return false
+    }
+
+    // 2xx or 3xx (non-auth redirects) means accessible
+    return response.status < 400
+  } catch {
+    // Network error - assume not accessible
+    return false
+  }
+}
+
+/**
  * Auto-detect Vercel deployment URLs for before/after commits
  */
 export async function detectVercelDeployments(
   repoUrl: string,
   beforeCommitSha: string,
   afterCommitSha: string
-): Promise<{ beforeUrl: string | null; afterUrl: string | null }> {
+): Promise<{
+  beforeUrl: string | null
+  afterUrl: string | null
+  beforePublic: boolean
+  afterPublic: boolean
+}> {
   const config = loadVercelConfig()
   if (!config?.token) {
-    return { beforeUrl: null, afterUrl: null }
+    return { beforeUrl: null, afterUrl: null, beforePublic: true, afterPublic: true }
   }
 
   // Find the Vercel project for this repo
   const project = await findVercelProject(config.token, repoUrl)
   if (!project) {
-    return { beforeUrl: null, afterUrl: null }
+    return { beforeUrl: null, afterUrl: null, beforePublic: true, afterPublic: true }
   }
 
   // Find deployments for both commits
@@ -223,5 +257,11 @@ export async function detectVercelDeployments(
     findDeploymentForCommit(config.token, project.id, afterCommitSha),
   ])
 
-  return { beforeUrl, afterUrl }
+  // Check if deployments are publicly accessible
+  const [beforePublic, afterPublic] = await Promise.all([
+    beforeUrl ? checkDeploymentPublicAccess(beforeUrl) : Promise.resolve(true),
+    afterUrl ? checkDeploymentPublicAccess(afterUrl) : Promise.resolve(true),
+  ])
+
+  return { beforeUrl, afterUrl, beforePublic, afterPublic }
 }
