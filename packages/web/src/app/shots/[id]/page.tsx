@@ -10,10 +10,12 @@ import { RecipePanel } from '@/components/RecipePanel'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function ShotDetailPage({ params }: Props) {
+  const { id } = await params
+
   const [result] = await db
     .select({
       shot: shots,
@@ -21,7 +23,7 @@ export default async function ShotDetailPage({ params }: Props) {
     })
     .from(shots)
     .leftJoin(users, eq(shots.userId, users.id))
-    .where(eq(shots.id, params.id))
+    .where(eq(shots.id, id))
     .limit(1)
 
   if (!result) {

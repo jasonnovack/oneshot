@@ -7,7 +7,7 @@ import Link from 'next/link'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  params: { username: string }
+  params: Promise<{ username: string }>
 }
 
 function formatDiffPreview(diff: string): string {
@@ -16,10 +16,12 @@ function formatDiffPreview(diff: string): string {
 }
 
 export default async function UserProfilePage({ params }: Props) {
+  const { username } = await params
+
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.username, params.username))
+    .where(eq(users.username, username))
     .limit(1)
 
   if (!user) {
