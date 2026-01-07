@@ -4,8 +4,9 @@ import { sql } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-// Admin endpoint to update shot fields
+// Admin endpoint to update shot preview URLs
 export async function POST(request: NextRequest) {
   // Auth check - require Bearer token and X-User-Id matching jasonnovack
   const authHeader = request.headers.get('Authorization')
