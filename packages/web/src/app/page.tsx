@@ -61,13 +61,8 @@ export default async function GalleryPage({ searchParams }: Props) {
     conditions.push(eq(shots.type, type))
   }
 
-  // Query shots first
-  let shotsResult = await db
-    .select()
-    .from(shots)
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(getOrderBy())
-    .limit(50)
+  // Query shots - simple query first to debug
+  const shotsResult = await db.select().from(shots).limit(50)
 
   // Then fetch users for those shots
   const userIds = shotsResult.map(s => s.userId).filter(Boolean) as string[]
