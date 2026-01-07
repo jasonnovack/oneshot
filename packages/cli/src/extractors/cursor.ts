@@ -1,8 +1,15 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import * as os from 'os'
-import Database from 'better-sqlite3'
 import type { MarkdownConfig, McpServer, PluginInfo, ModelParameters, TokenUsage } from './index.js'
+
+// better-sqlite3 is an optional dependency (requires native compilation)
+let Database: typeof import('better-sqlite3') | null = null
+try {
+  Database = require('better-sqlite3')
+} catch {
+  // Module not available - Cursor detection will be skipped
+}
 
 interface ExtractedSession {
   prompt: string
@@ -283,10 +290,15 @@ export async function findRecentSession(projectPath: string): Promise<string | n
  * Extract chat data from Cursor's SQLite database
  */
 export async function extractSession(dbPath: string, projectPath: string): Promise<ExtractedSession | null> {
-  let db: Database.Database | null = null
+  // Check if better-sqlite3 is available
+  if (!Database) {
+    return null
+  }
+
+  let db: ReturnType<typeof Database> | null = null
 
   try {
-    db = new Database(dbPath, { readonly: true })
+    db = Database(dbPath, { readonly: true })
 
     // Cursor stores AI chat data in the ItemTable with specific keys
     const chatKeys = [
@@ -416,6 +428,11 @@ export async function extractSession(dbPath: string, projectPath: string): Promi
  * Main function to detect and extract Cursor session
  */
 export async function detectCursor(projectPath: string): Promise<ExtractedSession | null> {
+  // Check if better-sqlite3 is available
+  if (!Database) {
+    return null
+  }
+
   const dbPath = await findRecentSession(projectPath)
   if (!dbPath) {
     return null
