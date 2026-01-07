@@ -65,16 +65,16 @@ export default async function GalleryPage({ searchParams }: Props) {
     conditions.push(eq(shots.type, type))
   }
 
-  // Query shots - simple query first to debug
-  let shotsResult: (typeof shots.$inferSelect)[] = []
-  let queryError: string | null = null
+  // Query shots with filters and sorting
+  const baseQuery = db
+    .select()
+    .from(shots)
+    .orderBy(getOrderBy())
+    .limit(50)
 
-  try {
-    shotsResult = await db.select().from(shots).limit(50)
-  } catch (error) {
-    queryError = error instanceof Error ? error.message : 'Unknown error'
-    console.error('Gallery query error:', error)
-  }
+  const shotsResult = conditions.length > 0
+    ? await baseQuery.where(and(...conditions))
+    : await baseQuery
 
   // Then fetch users for those shots
   const userIds = shotsResult.map(s => s.userId).filter(Boolean) as string[]
@@ -164,17 +164,11 @@ export default async function GalleryPage({ searchParams }: Props) {
         )}
       </form>
 
-      {queryError && (
-        <p style={{ color: '#f87171', marginTop: '1rem', padding: '1rem', background: '#111', borderRadius: '4px' }}>
-          Debug: Query error - {queryError}
-        </p>
-      )}
-
       {allShots.length === 0 ? (
         <p style={{ color: 'var(--muted)', marginTop: '2rem' }}>
           {q || harness || model || type
             ? 'No shots match your filters.'
-            : `No shots yet (${shotsResult.length} in DB). Submit your first shot with the CLI: oneshot submit`}
+            : 'No shots yet. Submit your first shot with the CLI: oneshot submit'}
         </p>
       ) : (
         <div className="shots-grid">
