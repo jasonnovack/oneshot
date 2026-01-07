@@ -191,17 +191,47 @@ function detectPlugins(projectPath: string, messages: ClaudeMessage[]): PluginIn
   const plugins: PluginInfo[] = []
   const detected = new Set<string>()
 
+  // Check Claude Code settings for enabled plugins
+  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json')
+  if (fs.existsSync(settingsPath)) {
+    try {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+      if (settings.enabledPlugins && typeof settings.enabledPlugins === 'object') {
+        for (const [pluginId, enabled] of Object.entries(settings.enabledPlugins)) {
+          if (enabled) {
+            // Parse plugin name from ID like "frontend-design@claude-plugins-official"
+            const [name, source] = pluginId.split('@')
+            const displayName = name
+              .split('-')
+              .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')
+
+            detected.add(pluginId)
+            plugins.push({
+              name: displayName,
+              version: source || undefined,
+            })
+          }
+        }
+      }
+    } catch {
+      // Skip invalid settings
+    }
+  }
+
   // Check for Beads (conversation threading/organization tool)
   const beadsConfigPath = path.join(projectPath, '.beads')
   const beadsJsonPath = path.join(projectPath, 'beads.json')
   if (fs.existsSync(beadsConfigPath) || fs.existsSync(beadsJsonPath)) {
-    detected.add('beads')
-    plugins.push({
-      name: 'Beads',
-      config: fs.existsSync(beadsJsonPath)
-        ? JSON.parse(fs.readFileSync(beadsJsonPath, 'utf-8'))
-        : undefined,
-    })
+    if (!detected.has('beads')) {
+      detected.add('beads')
+      plugins.push({
+        name: 'Beads',
+        config: fs.existsSync(beadsJsonPath)
+          ? JSON.parse(fs.readFileSync(beadsJsonPath, 'utf-8'))
+          : undefined,
+      })
+    }
   }
 
   // Check for Ralph Wiggum (prompt enhancement tool)
