@@ -37,3 +37,4 @@ coverage/
 # Drizzle
 drizzle/
 .claude/
+.env*.local

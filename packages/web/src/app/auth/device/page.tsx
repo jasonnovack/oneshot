@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 
-export default function DeviceAuthPage() {
+function DeviceAuthContent() {
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const [userCode, setUserCode] = useState(searchParams.get('code') || '')
@@ -110,5 +110,18 @@ export default function DeviceAuthPage() {
         Signed in as <strong>@{session.user.username}</strong>
       </p>
     </div>
+  )
+}
+
+export default function DeviceAuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="device-auth">
+        <h1>Device Authorization</h1>
+        <p>Loading...</p>
+      </div>
+    }>
+      <DeviceAuthContent />
+    </Suspense>
   )
 }
