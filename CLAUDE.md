@@ -1,12 +1,14 @@
 # Claude Code Instructions for Oneshot
 
-## Always Commit at End of Every Prompt
+## Always Commit After Every Block of Work
 
-After completing any prompt that makes changes to the codebase, always commit and push:
+After completing any block of work that makes changes to the codebase, always commit and push immediately. Don't wait until the end of a conversation - commit as soon as each logical unit of work is complete:
 
 ```bash
 git add -A && git commit -m "<descriptive message>" && git push
 ```
+
+This ensures no work is lost and creates a clear history of changes.
 
 ## After Completing Impressive Work
 
