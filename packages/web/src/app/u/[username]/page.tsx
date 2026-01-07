@@ -1,6 +1,6 @@
 import { db } from '@/db'
 import { users, shots, type Shot } from '@/db/schema'
-import { eq, desc, sql } from 'drizzle-orm'
+import { desc, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
@@ -21,7 +21,7 @@ export default async function UserProfilePage({ params }: Props) {
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.username, username))
+    .where(sql`${users.username} = ${username}`)
     .limit(1)
 
   if (!user) {
