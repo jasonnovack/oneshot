@@ -3,6 +3,10 @@ import { shots, users, type NewShot } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { unstable_noStore as noStore } from 'next/cache'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface AuthResult {
   authenticated: boolean
@@ -106,6 +110,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  noStore()
   try {
     const allShots = await db.select().from(shots).limit(100)
     return NextResponse.json({ shots: allShots })
