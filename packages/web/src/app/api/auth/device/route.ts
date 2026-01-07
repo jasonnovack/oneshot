@@ -34,10 +34,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Derive base URL from request or env
+    const host = request.headers.get('host') || request.nextUrl.host
+    const protocol = host?.includes('localhost') ? 'http' : 'https'
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
       || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`)
-      || request.headers.get('origin')
-      || `${request.nextUrl.protocol}//${request.nextUrl.host}`
+      || `${protocol}://${host}`
 
     return NextResponse.json({
       device_code: deviceCode,
