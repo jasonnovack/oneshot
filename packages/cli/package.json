@@ -1,0 +1,26 @@
+{
+  "name": "@oneshot/cli",
+  "version": "0.1.0",
+  "description": "CLI for submitting shots to Oneshot",
+  "bin": {
+    "oneshot": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "simple-git": "^3.22.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.0",
+    "better-sqlite3": "^9.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/better-sqlite3": "^7.6.8",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.0"
+  }
+}
