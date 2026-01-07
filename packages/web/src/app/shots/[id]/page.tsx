@@ -220,6 +220,6 @@ export default async function ShotDetailPage({ params }: Props) {
       />
 
       <Comments shotId={shot.id} />
-    </div>
+    </article>
   )
 }
