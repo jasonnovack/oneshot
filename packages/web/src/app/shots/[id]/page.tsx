@@ -53,18 +53,40 @@ export default async function ShotDetailPage({ params }: Props) {
       </div>
 
       <div className="shot-info">
-        <div>
+        <div className="commit-links">
           <strong>Before:</strong>{' '}
-          <code>{shot.beforeCommitHash.slice(0, 7)}</code>
-        </div>
-        <div>
+          <a
+            href={`${shot.repoUrl}/tree/${shot.beforeCommitHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View code at this commit"
+          >
+            <code>{shot.beforeCommitHash.slice(0, 7)}</code>
+          </a>
+          <span className="separator">→</span>
           <strong>After:</strong>{' '}
-          <code>{shot.afterCommitHash.slice(0, 7)}</code>
+          <a
+            href={`${shot.repoUrl}/tree/${shot.afterCommitHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="View code at this commit"
+          >
+            <code>{shot.afterCommitHash.slice(0, 7)}</code>
+          </a>
+          <span className="separator">|</span>
+          <a
+            href={`${shot.repoUrl}/compare/${shot.beforeCommitHash}...${shot.afterCommitHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="github-diff-link"
+          >
+            View on GitHub ↗
+          </a>
         </div>
         <div>
           <strong>Repo:</strong>{' '}
           <a href={shot.repoUrl} target="_blank" rel="noopener noreferrer">
-            {shot.repoUrl}
+            {shot.repoUrl.replace('https://github.com/', '')}
           </a>
         </div>
       </div>
