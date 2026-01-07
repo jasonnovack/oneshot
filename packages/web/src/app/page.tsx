@@ -61,17 +61,27 @@ export default async function GalleryPage({ searchParams }: Props) {
     conditions.push(eq(shots.type, type))
   }
 
-  // Query with filters
-  const allShots = await db
-    .select({
-      shot: shots,
-      user: users,
-    })
+  // Query shots first
+  let shotsResult = await db
+    .select()
     .from(shots)
-    .leftJoin(users, eq(shots.userId, users.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(getOrderBy())
     .limit(50)
+
+  // Then fetch users for those shots
+  const userIds = shotsResult.map(s => s.userId).filter(Boolean) as string[]
+  const usersResult = userIds.length > 0
+    ? await db.select().from(users).where(sql`${users.id} IN (${sql.join(userIds.map(id => sql`${id}`), sql`, `)})`)
+    : []
+
+  const usersMap = new Map(usersResult.map(u => [u.id, u]))
+
+  // Combine into expected format
+  const allShots = shotsResult.map(shot => ({
+    shot,
+    user: shot.userId ? usersMap.get(shot.userId) || null : null,
+  }))
 
   // Get distinct values for filter dropdowns
   const harnessOptions = await db
