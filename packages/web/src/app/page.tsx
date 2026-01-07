@@ -147,32 +147,34 @@ export default async function GalleryPage({ searchParams }: Props) {
             <div key={shot.id} className="shot-card">
               <Link href={`/shots/${shot.id}`}>
                 <h2>{shot.title}</h2>
-                <div className="shot-meta">
-                  {user ? (
-                    <Link href={`/u/${user.username}`} className="author-link" onClick={(e) => e.stopPropagation()}>
-                      @{user.username}
-                    </Link>
-                  ) : (
-                    <span className="anonymous-author">Anonymous</span>
-                  )}
-                  <span className="shot-date">
-                    {(() => {
-                      const d = new Date(shot.createdAt)
-                      return d.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-                      })
-                    })()}
-                  </span>
-                  <span className="badge">{shot.harness}</span>
-                  <span className="badge">{shot.model}</span>
-                  <span className="badge">{shot.type}</span>
-                  <span className="stats">
-                    <span title="Stars">★ {shot.starCount || 0}</span>
-                    <span title="Comments">💬 {shot.commentCount || 0}</span>
-                  </span>
-                </div>
+              </Link>
+              <div className="shot-meta">
+                {user ? (
+                  <Link href={`/u/${user.username}`} className="author-link">
+                    @{user.username}
+                  </Link>
+                ) : (
+                  <span className="anonymous-author">Anonymous</span>
+                )}
+                <span className="shot-date">
+                  {(() => {
+                    const d = new Date(shot.createdAt)
+                    return d.toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                    })
+                  })()}
+                </span>
+                <span className="badge">{shot.harness}</span>
+                <span className="badge">{shot.model}</span>
+                <span className="badge">{shot.type}</span>
+                <span className="stats">
+                  <span title="Stars">★ {shot.starCount || 0}</span>
+                  <span title="Comments">💬 {shot.commentCount || 0}</span>
+                </span>
+              </div>
+              <Link href={`/shots/${shot.id}`} className="diff-preview-link">
                 <div className="diff-preview">
                   {formatDiffPreview(shot.diff).split('\n').map((line, i) => (
                     <div
