@@ -30,6 +30,10 @@ export const shots = pgTable('shots', {
   afterCommitHash: text('after_commit_hash').notNull(),
   diff: text('diff').notNull(),
 
+  // Preview URLs (optional - for hosted live demos)
+  beforePreviewUrl: text('before_preview_url'),
+  afterPreviewUrl: text('after_preview_url'),
+
   // AI action
   harness: text('harness').notNull(), // claude_code | cursor | codex
   model: text('model').notNull(),

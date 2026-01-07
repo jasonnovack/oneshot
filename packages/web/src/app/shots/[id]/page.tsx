@@ -75,8 +75,37 @@ export default async function ShotDetailPage({ params }: Props) {
       </div>
 
       <div className="shot-info">
+        {/* Live Preview Links */}
+        {(shot.beforePreviewUrl || shot.afterPreviewUrl) && (
+          <div className="preview-links">
+            <strong>Live Preview:</strong>{' '}
+            {shot.beforePreviewUrl && (
+              <a
+                href={shot.beforePreviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="preview-link"
+              >
+                Before ↗
+              </a>
+            )}
+            {shot.beforePreviewUrl && shot.afterPreviewUrl && (
+              <span className="separator">→</span>
+            )}
+            {shot.afterPreviewUrl && (
+              <a
+                href={shot.afterPreviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="preview-link"
+              >
+                After ↗
+              </a>
+            )}
+          </div>
+        )}
         <div className="commit-links">
-          <strong>Before:</strong>{' '}
+          <strong>Commits:</strong>{' '}
           <a
             href={`${shot.repoUrl}/tree/${shot.beforeCommitHash}`}
             target="_blank"
@@ -86,7 +115,6 @@ export default async function ShotDetailPage({ params }: Props) {
             <code>{shot.beforeCommitHash.slice(0, 7)}</code>
           </a>
           <span className="separator">→</span>
-          <strong>After:</strong>{' '}
           <a
             href={`${shot.repoUrl}/tree/${shot.afterCommitHash}`}
             target="_blank"
@@ -102,7 +130,7 @@ export default async function ShotDetailPage({ params }: Props) {
             rel="noopener noreferrer"
             className="github-diff-link"
           >
-            View on GitHub ↗
+            View diff on GitHub ↗
           </a>
         </div>
         <div>

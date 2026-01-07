@@ -3,6 +3,7 @@
 import { Command } from 'commander'
 import { submit } from './commands/submit.js'
 import { login, logout, whoami } from './commands/login.js'
+import { vercelLogin, vercelLogout } from './commands/vercel.js'
 
 const program = new Command()
 
@@ -34,7 +35,19 @@ program
   .option('--title <title>', 'Shot title')
   .option('--type <type>', 'Transformation type (feature, fix, refactor, ui, test, docs, other)', 'feature')
   .option('--tags <tags>', 'Comma-separated tags')
+  .option('--before-preview-url <url>', 'Override auto-detected before preview URL')
+  .option('--after-preview-url <url>', 'Override auto-detected after preview URL')
   .option('--api-url <url>', 'API base URL', 'http://localhost:3000')
   .action(submit)
+
+program
+  .command('vercel-login')
+  .description('Connect Vercel for automatic deployment URL detection')
+  .action(vercelLogin)
+
+program
+  .command('vercel-logout')
+  .description('Disconnect Vercel integration')
+  .action(vercelLogout)
 
 program.parse()

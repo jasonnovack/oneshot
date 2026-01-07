@@ -696,3 +696,32 @@ h1 {
 .social-link:hover {
   color: var(--accent);
 }
+
+/* Shot date */
+.shot-date {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* Preview links */
+.preview-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-link {
+  color: #4ade80;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  background: rgba(74, 222, 128, 0.1);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.preview-link:hover {
+  background: rgba(74, 222, 128, 0.2);
+  text-decoration: none;
+}

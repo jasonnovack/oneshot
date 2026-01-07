@@ -354,15 +354,28 @@ export async function extractSession(sessionPath: string, projectPath: string): 
       const msg = JSON.parse(line) as ClaudeMessage
       messages.push(msg)
 
-      // Extract user prompts - handle both direct and nested message structure
-      const msgRole = msg.role || msg.message?.role
-      const msgContent = msg.content || msg.message?.content
+      // Extract user prompts - be strict about what constitutes a user message
+      // Only accept messages that are explicitly marked as user type
+      // and don't have assistant-like characteristics
+      const isUserMessage = msg.type === 'user' && msg.role !== 'assistant'
 
-      if (msg.type === 'user' || msgRole === 'user') {
-        const text = extractText(msgContent)
-        // Keep the longest user prompt (most likely to be the main instruction)
-        // Short messages like "yes", "continue", "planning mode" are likely not the main prompt
-        if (text && text.length > userPrompt.length) {
+      if (isUserMessage) {
+        // For user messages, extract only the direct content (not nested message content)
+        // as nested content might be assistant responses
+        const text = extractText(msg.content)
+
+        // Skip short confirmation messages and common AI-interaction phrases
+        const skipPhrases = [
+          'yes', 'no', 'ok', 'okay', 'continue', 'planning mode',
+          'proceed', 'go ahead', 'sure', 'thanks', 'thank you'
+        ]
+        const normalizedText = text.toLowerCase().trim()
+        const isSkippable = skipPhrases.some(phrase =>
+          normalizedText === phrase || normalizedText === phrase + '.'
+        )
+
+        // Keep the longest non-skippable user prompt
+        if (text && text.length > userPrompt.length && !isSkippable) {
           userPrompt = text
         }
       }

@@ -3,6 +3,7 @@ import { shots, users } from '@/db/schema'
 import { desc, eq, ilike, or, and, sql } from 'drizzle-orm'
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
+import { GalleryFilters } from '@/components/GalleryFilters'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -125,44 +126,10 @@ export default async function GalleryPage({ searchParams }: Props) {
       )}
 
       {/* Filters */}
-      <form className="filters" method="GET">
-        <input
-          type="text"
-          name="q"
-          placeholder="Search shots..."
-          defaultValue={q || ''}
-          className="search-input"
-        />
-        <select name="harness" defaultValue={harness || ''} className="filter-select">
-          <option value="">All harnesses</option>
-          {harnessOptions.map((h) => (
-            <option key={h.harness} value={h.harness}>{h.harness}</option>
-          ))}
-        </select>
-        <select name="type" defaultValue={type || ''} className="filter-select">
-          <option value="">All types</option>
-          {typeOptions.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <input
-          type="text"
-          name="model"
-          placeholder="Model..."
-          defaultValue={model || ''}
-          className="search-input"
-          style={{ width: '150px' }}
-        />
-        <select name="sort" defaultValue={sort} className="filter-select">
-          <option value="newest">Newest</option>
-          <option value="stars">Most Starred</option>
-          <option value="comments">Most Discussed</option>
-        </select>
-        <button type="submit" className="filter-btn">Filter</button>
-        {(q || harness || model || type) && (
-          <Link href="/" className="clear-btn">Clear</Link>
-        )}
-      </form>
+      <GalleryFilters
+        harnessOptions={harnessOptions.map(h => h.harness)}
+        typeOptions={typeOptions}
+      />
 
       {allShots.length === 0 ? (
         <p style={{ color: 'var(--muted)', marginTop: '2rem' }}>
@@ -182,6 +149,13 @@ export default async function GalleryPage({ searchParams }: Props) {
                       @{user.username}
                     </Link>
                   )}
+                  <span className="shot-date">
+                    {new Date(shot.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: shot.createdAt.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+                    })}
+                  </span>
                   <span className="badge">{shot.harness}</span>
                   <span className="badge">{shot.model}</span>
                   <span className="badge">{shot.type}</span>

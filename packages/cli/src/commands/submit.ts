@@ -1,6 +1,7 @@
 import { simpleGit } from 'simple-git'
 import { detectHarness, type ExtractedSession } from '../extractors/index.js'
 import { loadConfig } from './login.js'
+import { detectVercelDeployments, loadVercelConfig } from './vercel.js'
 import * as readline from 'readline'
 
 interface SubmitOptions {
@@ -9,6 +10,8 @@ interface SubmitOptions {
   type: string
   tags?: string
   apiUrl: string
+  beforePreviewUrl?: string
+  afterPreviewUrl?: string
 }
 
 async function prompt(question: string): Promise<string> {
@@ -44,17 +47,48 @@ export async function submit(options: SubmitOptions) {
     process.exit(1)
   }
 
-  // Get git info
+  // Detect harness and extract session FIRST to get timing info
+  console.log('🔍 Detecting AI harness...')
+
+  let session: ExtractedSession | null = null
+
+  // Try auto-detection with optional harness preference
+  session = await detectHarness(cwd, options.harness)
+
+  // Get git info - use session timestamp to find correct "before" commit
   console.log('📦 Reading git state...')
 
-  const log = await git.log({ maxCount: 2 })
+  // Get more commits to find the one before the session started
+  const log = await git.log({ maxCount: 50 })
   if (log.all.length < 2) {
-    console.error('❌ Need at least 2 commits. BEFORE = HEAD~1, AFTER = HEAD.')
+    console.error('❌ Need at least 2 commits. BEFORE = commit before session, AFTER = HEAD.')
     process.exit(1)
   }
 
   const afterCommit = log.all[0]
-  const beforeCommit = log.all[1]
+
+  // Find the "before" commit - the most recent commit BEFORE the session started
+  let beforeCommit = log.all[1] // Default to HEAD~1
+  if (session?.timestamp) {
+    const sessionTime = session.timestamp.getTime()
+    // Find the first commit that predates the session
+    for (const commit of log.all) {
+      const commitTime = new Date(commit.date).getTime()
+      if (commitTime < sessionTime) {
+        beforeCommit = commit
+        break
+      }
+    }
+    if (beforeCommit === log.all[1] && log.all.length > 2) {
+      // Check if we found a better match
+      const foundBetterMatch = log.all.some((commit, i) =>
+        i > 1 && new Date(commit.date).getTime() < sessionTime
+      )
+      if (foundBetterMatch) {
+        console.log(`   Session started: ${session.timestamp.toISOString()}`)
+      }
+    }
+  }
 
   console.log(`   BEFORE: ${beforeCommit.hash.slice(0, 7)} - ${beforeCommit.message.split('\n')[0]}`)
   console.log(`   AFTER:  ${afterCommit.hash.slice(0, 7)} - ${afterCommit.message.split('\n')[0]}`)
@@ -87,14 +121,7 @@ export async function submit(options: SubmitOptions) {
     repoUrl = await prompt('🔗 Repo URL (GitHub, etc.): ')
   }
 
-  // Detect harness and extract session
-  console.log('🔍 Detecting AI harness...')
-
-  let session: ExtractedSession | null = null
-
-  // Try auto-detection with optional harness preference
-  session = await detectHarness(cwd, options.harness)
-
+  // Print session info if found
   if (session) {
     console.log(`   ✓ Found ${harnessNames[session.harness] || session.harness} session`)
     console.log(`   Model: ${session.model}`)
@@ -131,6 +158,35 @@ export async function submit(options: SubmitOptions) {
   // Parse tags
   const tags = options.tags ? options.tags.split(',').map(t => t.trim()) : []
 
+  // Auto-detect Vercel deployment URLs (if Vercel is connected)
+  let beforePreviewUrl = options.beforePreviewUrl
+  let afterPreviewUrl = options.afterPreviewUrl
+
+  if (!beforePreviewUrl || !afterPreviewUrl) {
+    const vercelConfig = loadVercelConfig()
+    if (vercelConfig) {
+      console.log('\n🔍 Detecting Vercel deployments...')
+      const deployments = await detectVercelDeployments(
+        repoUrl,
+        beforeCommit.hash,
+        afterCommit.hash
+      )
+
+      if (deployments.beforeUrl || deployments.afterUrl) {
+        if (deployments.beforeUrl && !beforePreviewUrl) {
+          beforePreviewUrl = deployments.beforeUrl
+          console.log(`   ✓ Before: ${beforePreviewUrl}`)
+        }
+        if (deployments.afterUrl && !afterPreviewUrl) {
+          afterPreviewUrl = deployments.afterUrl
+          console.log(`   ✓ After: ${afterPreviewUrl}`)
+        }
+      } else {
+        console.log('   ⚠️  No Vercel deployments found for these commits')
+      }
+    }
+  }
+
   // Prepare payload with enhanced session data
   const enhancedSessionData = {
     ...session.sessionData,
@@ -150,6 +206,8 @@ export async function submit(options: SubmitOptions) {
     beforeCommitHash: beforeCommit.hash,
     afterCommitHash: afterCommit.hash,
     diff,
+    beforePreviewUrl,
+    afterPreviewUrl,
     harness: session.harness,
     model: session.model,
     prompt: session.prompt,

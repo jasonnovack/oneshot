@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
       beforeCommitHash: body.beforeCommitHash,
       afterCommitHash: body.afterCommitHash,
       diff: body.diff,
+      beforePreviewUrl: body.beforePreviewUrl || null,
+      afterPreviewUrl: body.afterPreviewUrl || null,
       harness: body.harness,
       model: body.model,
       prompt: body.prompt,
