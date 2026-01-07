@@ -121,11 +121,11 @@ export default async function GalleryPage({ searchParams }: Props) {
         <div className="shots-grid">
           {allShots.map(({ shot, user }) => (
             <div key={shot.id} className="shot-card">
-              {/* Screenshot thumbnail - cache busts daily */}
+              {/* Screenshot thumbnail using thum.io */}
               {shot.afterPreviewUrl && (
                 <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
                   <img
-                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=600&v=${Math.floor(Date.now() / 86400000)}`}
+                    src={`https://image.thum.io/get/width/600/crop/400/${shot.afterPreviewUrl}`}
                     alt={`Preview of ${shot.title}`}
                     className="shot-thumbnail"
                     loading="lazy"

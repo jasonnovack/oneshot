@@ -165,7 +165,7 @@ export default async function ShotDetailPage({ params }: Props) {
                 <span className="screenshot-label">Before</span>
                 <a href={shot.beforePreviewUrl} target="_blank" rel="noopener noreferrer">
                   <img
-                    src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.beforePreviewUrl)}?w=800&v=${Math.floor(Date.now() / 86400000)}`}
+                    src={`https://image.thum.io/get/width/800/${shot.beforePreviewUrl}`}
                     alt="Before preview"
                     className="screenshot-image"
                     loading="lazy"
@@ -177,7 +177,7 @@ export default async function ShotDetailPage({ params }: Props) {
               <span className="screenshot-label">{shot.beforePreviewUrl ? 'After' : 'Live Preview'}</span>
               <a href={shot.afterPreviewUrl} target="_blank" rel="noopener noreferrer">
                 <img
-                  src={`https://s0.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=800&v=${Math.floor(Date.now() / 86400000)}`}
+                  src={`https://image.thum.io/get/width/800/${shot.afterPreviewUrl}`}
                   alt="After preview"
                   className="screenshot-image"
                   loading="lazy"
