@@ -1,6 +1,6 @@
 import { db } from '@/db'
 import { users, shots } from '@/db/schema'
-import { eq, desc, sql } from 'drizzle-orm'
+import { desc, sql } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -14,7 +14,7 @@ export async function GET(
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.username, username))
+    .where(sql`${users.username} = ${username}`)
     .limit(1)
 
   if (!user) {
@@ -35,7 +35,7 @@ export async function GET(
   const userShots = await db
     .select()
     .from(shots)
-    .where(eq(shots.userId, user.id))
+    .where(sql`${shots.userId} = ${user.id}::uuid`)
     .orderBy(desc(shots.createdAt))
     .limit(50)
 
