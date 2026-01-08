@@ -30,8 +30,8 @@ export function WelcomeBanner() {
       </button>
       <h1>Welcome to Oneshot</h1>
       <p>
-        The place to showcase and discover verified AI code transformations.
-        One prompt, one commit, fully reproducible.
+        Explore what developers are building with AI coding tools.
+        Each shot shows exactly what prompt, model, and setup produced the result—so you can learn and level up your own workflow.
       </p>
     </div>
   )
