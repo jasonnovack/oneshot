@@ -47,18 +47,9 @@ export async function submit(options: SubmitOptions) {
     process.exit(1)
   }
 
-  // Detect harness and extract session FIRST to get timing info
-  console.log('🔍 Detecting AI harness...')
-
-  let session: ExtractedSession | null = null
-
-  // Try auto-detection with optional harness preference
-  session = await detectHarness(cwd, options.harness)
-
-  // Get git info - use session timestamp to find correct "before" commit
+  // Get git info FIRST - we need the commit hash for prompt extraction
   console.log('📦 Reading git state...')
 
-  // Get more commits to find the one before the session started
   const log = await git.log({ maxCount: 50 })
   if (log.all.length < 2) {
     console.error('❌ Need at least 2 commits. BEFORE = commit before session, AFTER = HEAD.')
@@ -66,10 +57,20 @@ export async function submit(options: SubmitOptions) {
   }
 
   const afterCommit = log.all[0]
-
-  // Find the "before" commit - the most recent commit BEFORE the session started
-  // Skip HEAD (log.all[0]) since that's our "after" commit
   let beforeCommit = log.all[1] // Default to HEAD~1
+
+  console.log(`   AFTER:  ${afterCommit.hash.slice(0, 7)} - ${afterCommit.message.split('\n')[0]}`)
+
+  // Detect harness and extract session with the commit hash
+  // This allows us to find the specific prompt that led to this commit
+  console.log('🔍 Detecting AI harness...')
+
+  let session: ExtractedSession | null = null
+
+  // Try auto-detection with optional harness preference, passing the commit hash
+  session = await detectHarness(cwd, options.harness, afterCommit.hash)
+
+  // Refine "before" commit using session timestamp if available
   if (session?.timestamp) {
     const sessionTime = session.timestamp.getTime()
     // Find the first commit (excluding HEAD) that predates the session
@@ -84,7 +85,6 @@ export async function submit(options: SubmitOptions) {
   }
 
   console.log(`   BEFORE: ${beforeCommit.hash.slice(0, 7)} - ${beforeCommit.message.split('\n')[0]}`)
-  console.log(`   AFTER:  ${afterCommit.hash.slice(0, 7)} - ${afterCommit.message.split('\n')[0]}`)
 
   // Get diff
   const diff = await git.diff([beforeCommit.hash, afterCommit.hash])

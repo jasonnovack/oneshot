@@ -62,8 +62,9 @@ interface DetectionResult {
 /**
  * Auto-detect which AI harness was used and extract the session
  * Returns the most recent session across all harnesses
+ * If commitHash is provided, finds the specific prompt that led to that commit
  */
-export async function detectHarness(projectPath: string, preferredHarness?: string): Promise<ExtractedSession | null> {
+export async function detectHarness(projectPath: string, preferredHarness?: string, commitHash?: string): Promise<ExtractedSession | null> {
   const results: DetectionResult[] = []
 
   // If a specific harness is requested, only try that one
@@ -71,7 +72,7 @@ export async function detectHarness(projectPath: string, preferredHarness?: stri
     let session = null
     switch (preferredHarness) {
       case 'claude_code':
-        session = await detectClaudeCode(projectPath)
+        session = await detectClaudeCode(projectPath, commitHash)
         break
       case 'cursor':
         session = await detectCursor(projectPath)
@@ -87,7 +88,7 @@ export async function detectHarness(projectPath: string, preferredHarness?: stri
   }
 
   // Try all harnesses and collect results
-  const claudeSession = await detectClaudeCode(projectPath)
+  const claudeSession = await detectClaudeCode(projectPath, commitHash)
   if (claudeSession) {
     results.push({ session: { ...claudeSession, harness: 'claude_code' }, harness: 'claude_code' })
   }

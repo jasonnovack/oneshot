@@ -3,10 +3,18 @@ import * as path from 'path'
 import * as os from 'os'
 import type { MarkdownConfig, McpServer, PluginInfo, ModelParameters, TokenUsage } from './index.js'
 
+interface ContentItem {
+  type: string
+  text?: string
+  thinking?: string
+  content?: string  // for tool_result items
+  tool_use_id?: string
+}
+
 interface ClaudeMessage {
   type: string
   role?: string
-  content?: string | { type: string; text?: string; thinking?: string }[]
+  content?: string | ContentItem[]
   model?: string
   timestamp?: string
   usage?: {
@@ -17,7 +25,7 @@ interface ClaudeMessage {
   }
   message?: {
     role?: string
-    content?: string | { type: string; text?: string; thinking?: string }[]
+    content?: string | ContentItem[]
     model?: string
     usage?: {
       input_tokens?: number
@@ -325,10 +333,110 @@ export async function findRecentSession(projectPath: string): Promise<string | n
   return mostRecentFile
 }
 
+interface ParsedMessage extends ClaudeMessage {
+  uuid?: string
+  parentUuid?: string
+  toolUseResult?: {
+    stdout?: string
+    stderr?: string
+  }
+}
+
+/**
+ * Find the user prompt that led to a specific commit by tracing back through the message chain
+ */
+function findPromptForCommit(messages: ParsedMessage[], commitHash: string): string | null {
+  // Build a map of uuid -> message for quick lookup
+  const byUuid = new Map<string, ParsedMessage>()
+  for (const msg of messages) {
+    if (msg.uuid) {
+      byUuid.set(msg.uuid, msg)
+    }
+  }
+
+  // Find the tool_result message containing the commit hash
+  // Commit results look like: "[main abc1234] Commit message" or "abc1234..def5678  main -> main"
+  let startUuid: string | null = null
+
+  for (const msg of messages) {
+    if (msg.type !== 'user') continue
+
+    // Check tool_result content
+    const content = msg.message?.content
+    if (!Array.isArray(content)) continue
+
+    for (const item of content) {
+      if (item.type === 'tool_result' && typeof item.content === 'string') {
+        // Check if this result contains our commit hash (first 7 chars is common)
+        const shortHash = commitHash.slice(0, 7)
+        if (item.content.includes(shortHash) || item.content.includes(commitHash)) {
+          startUuid = msg.uuid || null
+          break
+        }
+      }
+    }
+
+    // Also check toolUseResult.stdout
+    if (msg.toolUseResult?.stdout) {
+      const shortHash = commitHash.slice(0, 7)
+      if (msg.toolUseResult.stdout.includes(shortHash) || msg.toolUseResult.stdout.includes(commitHash)) {
+        startUuid = msg.uuid || null
+      }
+    }
+
+    if (startUuid) break
+  }
+
+  if (!startUuid) {
+    return null
+  }
+
+  // Trace back through parentUuid chain to find the originating user prompt
+  let uuid: string | null = startUuid
+  let iterations = 0
+  const maxIterations = 200 // Safety limit
+
+  while (uuid && iterations < maxIterations) {
+    iterations++
+    const msg = byUuid.get(uuid)
+    if (!msg) break
+
+    // Check if this is a real user message with text content (not tool_result)
+    if (msg.type === 'user' && msg.message?.content) {
+      const content = msg.message.content
+
+      // Look for text content (not tool_result)
+      if (Array.isArray(content)) {
+        for (const item of content) {
+          if (item.type === 'text' && item.text && item.text.length > 20) {
+            // Skip system continuation messages
+            const normalized = item.text.toLowerCase().trim()
+            if (!normalized.startsWith('this session is being continued') &&
+                !normalized.startsWith('limit is reset')) {
+              return item.text
+            }
+          }
+        }
+      } else if (typeof content === 'string' && content.length > 20) {
+        const normalized = content.toLowerCase().trim()
+        if (!normalized.startsWith('this session is being continued') &&
+            !normalized.startsWith('limit is reset')) {
+          return content
+        }
+      }
+    }
+
+    uuid = msg.parentUuid || null
+  }
+
+  return null
+}
+
 /**
  * Extract prompt and model from a Claude Code session file
+ * If commitHash is provided, finds the specific prompt that led to that commit
  */
-export async function extractSession(sessionPath: string, projectPath: string): Promise<ExtractedSession | null> {
+export async function extractSession(sessionPath: string, projectPath: string, commitHash?: string): Promise<ExtractedSession | null> {
   const content = fs.readFileSync(sessionPath, 'utf-8')
   const lines = content.trim().split('\n')
 
@@ -337,7 +445,7 @@ export async function extractSession(sessionPath: string, projectPath: string): 
   let systemPrompt: string | undefined
   let temperature: number | undefined
   let maxTokens: number | undefined
-  const messages: ClaudeMessage[] = []
+  const messages: ParsedMessage[] = []
 
   // Aggregate token usage across all messages
   const tokenUsage: TokenUsage = {
@@ -351,38 +459,8 @@ export async function extractSession(sessionPath: string, projectPath: string): 
     if (!line.trim()) continue
 
     try {
-      const msg = JSON.parse(line) as ClaudeMessage
+      const msg = JSON.parse(line) as ParsedMessage
       messages.push(msg)
-
-      // Extract user prompts - be strict about what constitutes a user message
-      // Only accept messages that are explicitly marked as user type
-      const isUserMessage = msg.type === 'user'
-
-      if (isUserMessage) {
-        // User messages have content in msg.message.content
-        const text = extractText(msg.message?.content)
-
-        // Skip short confirmation messages, system messages, and common AI-interaction phrases
-        const skipPhrases = [
-          'yes', 'no', 'ok', 'okay', 'continue', 'planning mode',
-          'proceed', 'go ahead', 'sure', 'thanks', 'thank you'
-        ]
-        const skipPrefixes = [
-          'this session is being continued',  // Context continuation
-          'limit is reset',                   // Context limit message
-        ]
-        const normalizedText = text.toLowerCase().trim()
-        const isSkippable = skipPhrases.some(phrase =>
-          normalizedText === phrase || normalizedText === phrase + '.'
-        ) || skipPrefixes.some(prefix => normalizedText.startsWith(prefix))
-
-        // Keep the LAST substantial non-skippable user prompt
-        // (not the longest - we want the prompt that generated the current commit)
-        // Messages are in chronological order, so the last valid prompt is most relevant
-        if (text && text.length > 20 && !isSkippable) {
-          userPrompt = text
-        }
-      }
 
       // Extract model info - handle both direct and nested
       const msgModel = msg.model || msg.message?.model
@@ -413,6 +491,42 @@ export async function extractSession(sessionPath: string, projectPath: string): 
       }
     } catch {
       // Skip invalid JSON lines
+    }
+  }
+
+  // If we have a commit hash, try to find the specific prompt that led to it
+  if (commitHash) {
+    const commitPrompt = findPromptForCommit(messages, commitHash)
+    if (commitPrompt) {
+      userPrompt = commitPrompt
+    }
+  }
+
+  // Fallback: if no commit-specific prompt found, use the last substantial user prompt
+  if (!userPrompt) {
+    for (const msg of messages) {
+      if (msg.type !== 'user') continue
+
+      const text = extractText(msg.message?.content)
+
+      // Skip short confirmation messages and system messages
+      const skipPhrases = [
+        'yes', 'no', 'ok', 'okay', 'continue', 'planning mode',
+        'proceed', 'go ahead', 'sure', 'thanks', 'thank you'
+      ]
+      const skipPrefixes = [
+        'this session is being continued',
+        'limit is reset',
+      ]
+      const normalizedText = text.toLowerCase().trim()
+      const isSkippable = skipPhrases.some(phrase =>
+        normalizedText === phrase || normalizedText === phrase + '.'
+      ) || skipPrefixes.some(prefix => normalizedText.startsWith(prefix))
+
+      // Keep the LAST substantial non-skippable user prompt
+      if (text && text.length > 20 && !isSkippable) {
+        userPrompt = text
+      }
     }
   }
 
@@ -451,12 +565,13 @@ export async function extractSession(sessionPath: string, projectPath: string): 
 
 /**
  * Main function to detect and extract Claude Code session
+ * If commitHash is provided, finds the specific prompt that led to that commit
  */
-export async function detectClaudeCode(projectPath: string): Promise<ExtractedSession | null> {
+export async function detectClaudeCode(projectPath: string, commitHash?: string): Promise<ExtractedSession | null> {
   const sessionPath = await findRecentSession(projectPath)
   if (!sessionPath) {
     return null
   }
 
-  return extractSession(sessionPath, projectPath)
+  return extractSession(sessionPath, projectPath, commitHash)
 }
