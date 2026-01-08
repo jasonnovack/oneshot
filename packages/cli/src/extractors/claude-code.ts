@@ -376,8 +376,10 @@ export async function extractSession(sessionPath: string, projectPath: string): 
           normalizedText === phrase || normalizedText === phrase + '.'
         ) || skipPrefixes.some(prefix => normalizedText.startsWith(prefix))
 
-        // Keep the longest non-skippable user prompt
-        if (text && text.length > userPrompt.length && !isSkippable) {
+        // Keep the LAST substantial non-skippable user prompt
+        // (not the longest - we want the prompt that generated the current commit)
+        // Messages are in chronological order, so the last valid prompt is most relevant
+        if (text && text.length > 20 && !isSkippable) {
           userPrompt = text
         }
       }
