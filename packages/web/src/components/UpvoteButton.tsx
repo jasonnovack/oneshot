@@ -6,9 +6,10 @@ import { useSession } from 'next-auth/react'
 interface UpvoteButtonProps {
   shotId: string
   initialCount: number
+  size?: 'small' | 'default'
 }
 
-export function UpvoteButton({ shotId, initialCount }: UpvoteButtonProps) {
+export function UpvoteButton({ shotId, initialCount, size = 'default' }: UpvoteButtonProps) {
   const { data: session } = useSession()
   const [upvoted, setUpvoted] = useState(false)
   const [count, setCount] = useState(initialCount)
@@ -23,7 +24,10 @@ export function UpvoteButton({ shotId, initialCount }: UpvoteButtonProps) {
     }
   }, [shotId, session])
 
-  const toggleUpvote = async () => {
+  const toggleUpvote = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     if (!session?.user) {
       return
     }
@@ -46,17 +50,20 @@ export function UpvoteButton({ shotId, initialCount }: UpvoteButtonProps) {
     }
   }
 
+  const sizeClass = size === 'small' ? 'upvote-button-sm' : ''
+  const iconSize = size === 'small' ? 16 : 20
+
   return (
     <button
       onClick={toggleUpvote}
       disabled={loading || !session?.user}
-      className={`upvote-button ${upvoted ? 'upvoted' : ''}`}
+      className={`upvote-button ${sizeClass} ${upvoted ? 'upvoted' : ''}`}
       title={session?.user ? (upvoted ? 'Remove upvote' : 'Upvote') : 'Sign in to upvote'}
     >
       <svg
         className="upvote-arrow"
-        width="20"
-        height="20"
+        width={iconSize}
+        height={iconSize}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

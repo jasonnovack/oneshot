@@ -1,11 +1,11 @@
 import { db } from '@/db'
 import { shots, users } from '@/db/schema'
 import { desc, eq, ilike, or, and, sql } from 'drizzle-orm'
-// Note: ilike is still available if needed for search functionality
 import Link from 'next/link'
 import { unstable_noStore as noStore } from 'next/cache'
 import { GalleryFilters } from '@/components/GalleryFilters'
 import { WelcomeBanner } from '@/components/WelcomeBanner'
+import { ShotCard } from '@/components/ShotCard'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -19,13 +19,58 @@ interface Props {
   }
 }
 
-function formatDiffPreview(diff: string): string {
-  const lines = diff.split('\n').slice(0, 8)
-  return lines.join('\n') + (diff.split('\n').length > 8 ? '\n...' : '')
+// Helper to compute diff stats
+function computeDiffStats(diff: string) {
+  const lines = diff.split('\n')
+  let filesChanged = 0
+  let additions = 0
+  let deletions = 0
+
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      filesChanged++
+    } else if (line.startsWith('+') && !line.startsWith('+++')) {
+      additions++
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      deletions++
+    }
+  }
+
+  return { filesChanged, additions, deletions }
+}
+
+// Format relative time
+function formatRelativeTime(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  })
+}
+
+// Format harness name
+function formatHarness(harness: string): string {
+  const names: Record<string, string> = {
+    claude_code: 'Claude Code',
+    cursor: 'Cursor',
+    codex: 'Codex CLI',
+  }
+  return names[harness] || harness
 }
 
 export default async function GalleryPage({ searchParams }: Props) {
-  noStore() // Disable all caching for this page
+  noStore()
 
   const { q, harness, type, sort = 'newest' } = searchParams
 
@@ -73,7 +118,7 @@ export default async function GalleryPage({ searchParams }: Props) {
     ? await baseQuery.where(and(...conditions))
     : await baseQuery
 
-  // Then fetch users for those shots
+  // Fetch users for those shots
   const userIds = shotsResult.map(s => s.userId).filter(Boolean) as string[]
   const usersResult = userIds.length > 0
     ? await db.select().from(users).where(sql`${users.id} IN (${sql.join(userIds.map(id => sql`${id}::uuid`), sql`, `)})`)
@@ -81,10 +126,13 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   const usersMap = new Map(usersResult.map(u => [u.id, u]))
 
-  // Combine into expected format
+  // Combine into expected format with computed stats
   const allShots = shotsResult.map(shot => ({
     shot,
     user: shot.userId ? usersMap.get(shot.userId) || null : null,
+    diffStats: computeDiffStats(shot.diff),
+    relativeTime: formatRelativeTime(new Date(shot.createdAt)),
+    harnessDisplay: formatHarness(shot.harness),
   }))
 
   // Get distinct values for filter dropdowns
@@ -94,106 +142,74 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   const typeOptions = ['feature', 'fix', 'refactor', 'ui', 'test', 'docs', 'other']
 
+  const hasFilters = q || harness || type
+
   return (
-    <div>
+    <div className="gallery-page">
       <WelcomeBanner />
 
-      <h2 style={{ marginBottom: '1rem' }}>Gallery</h2>
+      {/* Gallery Header */}
+      <header className="gallery-header">
+        <div className="gallery-header-content">
+          <h1 className="gallery-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Gallery
+          </h1>
+          <p className="gallery-subtitle">{allShots.length} shots from the community</p>
+        </div>
+      </header>
 
       {/* Filters */}
       <GalleryFilters
         harnessOptions={harnessOptions.map(h => h.harness)}
         typeOptions={typeOptions}
+        totalCount={allShots.length}
       />
 
+      {/* Results */}
       {allShots.length === 0 ? (
-        <div className="empty-state">
+        <div className="gallery-empty">
+          <div className="gallery-empty-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <h3>
+            {hasFilters ? 'No shots match your filters' : 'No shots yet'}
+          </h3>
           <p>
-            {q || harness || type
-              ? 'No shots match your filters.'
-              : 'No shots yet. Submit your first shot with the CLI:'}
+            {hasFilters
+              ? 'Try adjusting your search or filters to find what you\'re looking for.'
+              : 'Be the first to share your AI-powered code transformation.'}
           </p>
-          {!(q || harness || type) && (
-            <code>oneshot submit</code>
+          {!hasFilters && (
+            <div className="gallery-empty-cta">
+              <code>npm install -g @oneshot/cli && oneshot submit</code>
+            </div>
+          )}
+          {hasFilters && (
+            <Link href="/" className="gallery-empty-clear">
+              Clear all filters
+            </Link>
           )}
         </div>
       ) : (
-        <div className="shots-grid">
-          {allShots.map(({ shot, user }) => (
-            <article key={shot.id} className="shot-card">
-              {/* Screenshot thumbnail */}
-              {shot.afterPreviewUrl ? (
-                <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
-                  <img
-                    src={`https://image.thum.io/get/width/720/crop/450/${shot.afterPreviewUrl}`}
-                    alt={`Preview of ${shot.title}`}
-                    className="shot-thumbnail"
-                    loading="lazy"
-                  />
-                </Link>
-              ) : (
-                <Link href={`/shots/${shot.id}`} className="shot-thumbnail-link">
-                  <div className="shot-thumbnail-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <path d="m9 9 6 6M15 9l-6 6" />
-                    </svg>
-                  </div>
-                </Link>
-              )}
-
-              {/* Card content */}
-              <div className="shot-card-content">
-                <Link href={`/shots/${shot.id}`}>
-                  <h2>{shot.title}</h2>
-                </Link>
-                <div className="shot-meta">
-                  {user ? (
-                    <Link href={`/u/${user.username}`} className="author-link author-with-avatar">
-                      {user.avatarUrl && (
-                        <img src={user.avatarUrl} alt={user.username} className="author-avatar" />
-                      )}
-                      @{user.username}
-                    </Link>
-                  ) : (
-                    <span className="anonymous-author">Anonymous</span>
-                  )}
-                  <span className="shot-date">
-                    {(() => {
-                      const d = new Date(shot.createdAt)
-                      return d.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-                      })
-                    })()}
-                  </span>
-                  <span className="badge">{shot.harness}</span>
-                  <span className="badge">{shot.type}</span>
-                  <span className="stats">
-                    <span title="Upvotes">▲ {shot.starCount || 0}</span>
-                    <span title="Comments">💬 {shot.commentCount || 0}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Diff preview */}
-              <Link href={`/shots/${shot.id}`} className="diff-preview-link">
-                <div className="diff-preview">
-                  {formatDiffPreview(shot.diff).split('\n').map((line, i) => (
-                    <div
-                      key={i}
-                      className={
-                        line.startsWith('+') && !line.startsWith('+++') ? 'diff-add' :
-                        line.startsWith('-') && !line.startsWith('---') ? 'diff-remove' : ''
-                      }
-                    >
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              </Link>
-            </article>
+        <div className="shots-list">
+          {allShots.map(({ shot, user, diffStats, relativeTime, harnessDisplay }) => (
+            <ShotCard
+              key={shot.id}
+              shot={shot}
+              user={user}
+              diffStats={diffStats}
+              relativeTime={relativeTime}
+              harnessDisplay={harnessDisplay}
+            />
           ))}
         </div>
       )}
