@@ -3,9 +3,58 @@ import { shots, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { StarButton } from '@/components/StarButton'
+import { UpvoteButton } from '@/components/UpvoteButton'
+import { ShareButton } from '@/components/ShareButton'
 import { Comments } from '@/components/Comments'
 import { RecipePanel } from '@/components/RecipePanel'
+
+// Helper to compute diff stats from raw diff text
+function computeDiffStats(diff: string) {
+  const lines = diff.split('\n')
+  let filesChanged = 0
+  let additions = 0
+  let deletions = 0
+
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      filesChanged++
+    } else if (line.startsWith('+') && !line.startsWith('+++')) {
+      additions++
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      deletions++
+    }
+  }
+
+  return { filesChanged, additions, deletions }
+}
+
+// Helper to extract generation time from session data
+function extractGenerationTime(sessionData: string | null): number | null {
+  if (!sessionData) return null
+  try {
+    const data = JSON.parse(sessionData)
+    // Check for tokenUsage which might contain timing info
+    // Or calculate from message timestamps if available
+    if (data.generationTimeMs) {
+      return data.generationTimeMs
+    }
+    // Try to calculate from token usage (rough estimate: ~50 tokens/second)
+    if (data.tokenUsage?.totalTokens) {
+      return Math.round(data.tokenUsage.totalTokens / 50 * 1000)
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+  const minutes = Math.floor(ms / 60000)
+  const seconds = Math.round((ms % 60000) / 1000)
+  return `${minutes}m ${seconds}s`
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -90,7 +139,16 @@ export default async function ShotDetailPage({ params }: Props) {
             ))}
           </div>
         </div>
-        <StarButton shotId={shot.id} initialCount={shot.starCount || 0} />
+        <div className="shot-actions">
+          <UpvoteButton shotId={shot.id} initialCount={shot.starCount || 0} />
+          <ShareButton
+            shotId={shot.id}
+            title={shot.title}
+            model={shot.model}
+            harness={shot.harness}
+            thumbnailUrl={shot.afterPreviewUrl ? `https://image.thum.io/get/width/800/${shot.afterPreviewUrl}` : undefined}
+          />
+        </div>
       </header>
 
       <div className="shot-info">
@@ -197,20 +255,43 @@ export default async function ShotDetailPage({ params }: Props) {
         </div>
       )}
 
-      <h3 style={{ marginTop: '2rem' }}>Diff</h3>
-      <div className="full-diff">
-        {shot.diff.split('\n').map((line, i) => (
-          <div
-            key={i}
-            className={
-              line.startsWith('+') && !line.startsWith('+++') ? 'diff-add' :
-              line.startsWith('-') && !line.startsWith('---') ? 'diff-remove' : ''
-            }
-          >
-            {line}
+      {/* Diff Stats */}
+      {(() => {
+        const diffStats = computeDiffStats(shot.diff)
+        const generationTime = extractGenerationTime(shot.sessionData)
+        return (
+          <div className="diff-stats-panel">
+            <div className="diff-stats">
+              <div className="diff-stat">
+                <span className="diff-stat-value">{diffStats.filesChanged}</span>
+                <span className="diff-stat-label">files changed</span>
+              </div>
+              <div className="diff-stat diff-stat-add">
+                <span className="diff-stat-value">+{diffStats.additions}</span>
+                <span className="diff-stat-label">additions</span>
+              </div>
+              <div className="diff-stat diff-stat-remove">
+                <span className="diff-stat-value">-{diffStats.deletions}</span>
+                <span className="diff-stat-label">deletions</span>
+              </div>
+              {generationTime && (
+                <div className="diff-stat">
+                  <span className="diff-stat-value">{formatDuration(generationTime)}</span>
+                  <span className="diff-stat-label">generation time</span>
+                </div>
+              )}
+            </div>
+            <a
+              href={`${shot.repoUrl}/compare/${shot.beforeCommitHash}...${shot.afterCommitHash}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="view-diff-btn"
+            >
+              View full diff on GitHub ↗
+            </a>
           </div>
-        ))}
-      </div>
+        )
+      })()}
 
       <RecipePanel
         prompt={shot.prompt}

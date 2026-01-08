@@ -171,7 +171,7 @@ export default async function GalleryPage({ searchParams }: Props) {
                   <span className="badge">{shot.harness}</span>
                   <span className="badge">{shot.type}</span>
                   <span className="stats">
-                    <span title="Stars">★ {shot.starCount || 0}</span>
+                    <span title="Upvotes">▲ {shot.starCount || 0}</span>
                     <span title="Comments">💬 {shot.commentCount || 0}</span>
                   </span>
                 </div>

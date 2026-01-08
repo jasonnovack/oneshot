@@ -1464,9 +1464,229 @@ select {
 }
 
 /* --------------------------------------------------------------------------
-   Star Button
+   Shot Actions (Upvote + Share)
    -------------------------------------------------------------------------- */
 
+.shot-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Upvote Button (Product Hunt Style)
+   -------------------------------------------------------------------------- */
+
+.upvote-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  font-size: var(--text-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 60px;
+}
+
+.upvote-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+  transform: translateY(-2px);
+}
+
+.upvote-button.upvoted {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.upvote-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upvote-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.upvote-button:hover:not(:disabled) .upvote-arrow {
+  transform: translateY(-2px);
+}
+
+.upvote-button.upvoted .upvote-arrow {
+  animation: upvote-bounce 0.4s var(--ease-spring);
+}
+
+@keyframes upvote-bounce {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+.upvote-count {
+  font-size: var(--text-small);
+  font-weight: 700;
+  margin-top: var(--space-1);
+}
+
+/* --------------------------------------------------------------------------
+   Share Button
+   -------------------------------------------------------------------------- */
+
+.share-button-container {
+  position: relative;
+}
+
+.share-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  font-size: var(--text-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.share-button:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+.share-menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  min-width: 180px;
+  z-index: 100;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  animation: menu-appear 0.15s var(--ease-out);
+}
+
+@keyframes menu-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.share-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.share-menu-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.share-menu-item svg {
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Diff Stats Panel
+   -------------------------------------------------------------------------- */
+
+.diff-stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+
+.diff-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.diff-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.diff-stat-value {
+  font-size: var(--text-h2);
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.diff-stat-add .diff-stat-value {
+  color: var(--success);
+}
+
+.diff-stat-remove .diff-stat-value {
+  color: var(--error);
+}
+
+.diff-stat-label {
+  font-size: var(--text-tiny);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.view-diff-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--text-small);
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  width: fit-content;
+}
+
+.view-diff-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* Legacy star-button support */
 .star-button {
   display: flex;
   align-items: center;
