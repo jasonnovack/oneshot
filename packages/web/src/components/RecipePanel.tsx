@@ -50,6 +50,24 @@ interface RecipePanelProps {
   sessionData?: string | null
 }
 
+// Icon components for recipe sections
+function IconCopy() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  )
+}
+
+function IconCheck() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  )
+}
+
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false)
 
@@ -64,8 +82,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   }
 
   return (
-    <button onClick={handleCopy} className="copy-btn" title={`Copy ${label}`}>
-      {copied ? '✓ Copied' : `Copy ${label}`}
+    <button onClick={handleCopy} className={`copy-btn ${copied ? 'copied' : ''}`} title={`Copy ${label}`}>
+      {copied ? <IconCheck /> : <IconCopy />}
+      <span>{copied ? 'Copied!' : 'Copy'}</span>
     </button>
   )
 }
@@ -107,68 +126,126 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
   }
 
   return (
-    <div className="recipe-panel">
-      <h3>Recipe</h3>
+    <section className="recipe-panel">
+      <header className="recipe-panel-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Recipe
+        </h3>
+        <p className="recipe-panel-subtitle">Everything you need to reproduce this transformation</p>
+      </header>
 
-      <div className="recipe-section">
+      {/* Prompt Section - Hero of the Recipe */}
+      <div className="recipe-section recipe-section-prompt">
         <div className="recipe-header">
-          <span className="recipe-label">Model</span>
+          <span className="recipe-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Prompt
+          </span>
+          <CopyButton text={prompt} label="Prompt" />
         </div>
-        <div className="recipe-value">
-          <code>{model}</code>
+        <div className="prompt-box">
+          {prompt}
         </div>
       </div>
 
-      <div className="recipe-section">
-        <div className="recipe-header">
-          <span className="recipe-label">Harness</span>
+      {/* Quick Info Grid */}
+      <div className="recipe-info-grid">
+        <div className="recipe-info-card">
+          <span className="recipe-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6m0 6v10M4.22 4.22l4.24 4.24m7.08 7.08l4.24 4.24M1 12h6m6 0h10M4.22 19.78l4.24-4.24m7.08-7.08l4.24-4.24"/>
+            </svg>
+          </span>
+          <span className="recipe-info-label">Model</span>
+          <span className="recipe-info-value"><code>{model}</code></span>
         </div>
-        <div className="recipe-value">
-          {harnessNames[harness] || harness}
+        <div className="recipe-info-card">
+          <span className="recipe-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </span>
+          <span className="recipe-info-label">Harness</span>
+          <span className="recipe-info-value">{harnessNames[harness] || harness}</span>
         </div>
       </div>
-
-      {/* Model Parameters */}
-      {parsedSession?.modelParameters && (
-        <div className="recipe-section">
-          <div className="recipe-header">
-            <span className="recipe-label">Model Parameters</span>
-          </div>
-          <div className="recipe-value" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            {parsedSession.modelParameters.temperature !== undefined && (
-              <span><code>temperature: {parsedSession.modelParameters.temperature}</code></span>
-            )}
-            {parsedSession.modelParameters.maxTokens !== undefined && (
-              <span><code>max_tokens: {parsedSession.modelParameters.maxTokens}</code></span>
-            )}
-            {parsedSession.modelParameters.topP !== undefined && (
-              <span><code>top_p: {parsedSession.modelParameters.topP}</code></span>
-            )}
-            {parsedSession.modelParameters.topK !== undefined && (
-              <span><code>top_k: {parsedSession.modelParameters.topK}</code></span>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Token Usage */}
       {parsedSession?.tokenUsage && (
         <div className="recipe-section">
           <div className="recipe-header">
-            <span className="recipe-label">Token Usage</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20V10"/>
+                <path d="M18 20V4"/>
+                <path d="M6 20v-4"/>
+              </svg>
+              Token Usage
+            </span>
           </div>
-          <div className="recipe-value" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div className="recipe-tokens">
             {parsedSession.tokenUsage.inputTokens !== undefined && (
-              <span>Input: <code>{formatTokens(parsedSession.tokenUsage.inputTokens)}</code></span>
+              <div className="recipe-token-stat">
+                <span className="recipe-token-label">Input</span>
+                <span className="recipe-token-value">{formatTokens(parsedSession.tokenUsage.inputTokens)}</span>
+              </div>
             )}
             {parsedSession.tokenUsage.outputTokens !== undefined && (
-              <span>Output: <code>{formatTokens(parsedSession.tokenUsage.outputTokens)}</code></span>
+              <div className="recipe-token-stat">
+                <span className="recipe-token-label">Output</span>
+                <span className="recipe-token-value">{formatTokens(parsedSession.tokenUsage.outputTokens)}</span>
+              </div>
             )}
             {parsedSession.tokenUsage.totalTokens !== undefined && (
-              <span>Total: <code>{formatTokens(parsedSession.tokenUsage.totalTokens)}</code></span>
+              <div className="recipe-token-stat recipe-token-total">
+                <span className="recipe-token-label">Total</span>
+                <span className="recipe-token-value">{formatTokens(parsedSession.tokenUsage.totalTokens)}</span>
+              </div>
             )}
             {parsedSession.tokenUsage.cacheReadTokens !== undefined && parsedSession.tokenUsage.cacheReadTokens > 0 && (
-              <span>Cache Read: <code>{formatTokens(parsedSession.tokenUsage.cacheReadTokens)}</code></span>
+              <div className="recipe-token-stat recipe-token-cache">
+                <span className="recipe-token-label">Cached</span>
+                <span className="recipe-token-value">{formatTokens(parsedSession.tokenUsage.cacheReadTokens)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Model Parameters */}
+      {parsedSession?.modelParameters && (
+        <div className="recipe-section">
+          <div className="recipe-header">
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Parameters
+            </span>
+          </div>
+          <div className="recipe-params">
+            {parsedSession.modelParameters.temperature !== undefined && (
+              <span className="recipe-param"><code>temp: {parsedSession.modelParameters.temperature}</code></span>
+            )}
+            {parsedSession.modelParameters.maxTokens !== undefined && (
+              <span className="recipe-param"><code>max: {parsedSession.modelParameters.maxTokens}</code></span>
+            )}
+            {parsedSession.modelParameters.topP !== undefined && (
+              <span className="recipe-param"><code>top_p: {parsedSession.modelParameters.topP}</code></span>
+            )}
+            {parsedSession.modelParameters.topK !== undefined && (
+              <span className="recipe-param"><code>top_k: {parsedSession.modelParameters.topK}</code></span>
             )}
           </div>
         </div>
@@ -178,11 +255,16 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
       {parsedSession?.plugins && parsedSession.plugins.length > 0 && (
         <div className="recipe-section">
           <div className="recipe-header">
-            <span className="recipe-label">Plugins</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+              </svg>
+              Plugins
+            </span>
           </div>
-          <div className="recipe-value" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div className="recipe-plugins">
             {parsedSession.plugins.map((plugin, i) => (
-              <span key={i} className="badge" style={{ background: 'rgba(0, 112, 243, 0.2)', color: 'var(--accent)' }}>
+              <span key={i} className="recipe-plugin-badge">
                 {plugin.name}{plugin.version ? ` v${plugin.version}` : ''}
               </span>
             ))}
@@ -194,15 +276,23 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
       {parsedSession?.mcpServers && parsedSession.mcpServers.length > 0 && (
         <div className="recipe-section">
           <div className="recipe-header">
-            <span className="recipe-label">MCP Servers</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                <line x1="6" y1="6" x2="6.01" y2="6"/>
+                <line x1="6" y1="18" x2="6.01" y2="18"/>
+              </svg>
+              MCP Servers
+            </span>
           </div>
-          <div className="recipe-value">
+          <div className="recipe-mcp-list">
             {parsedSession.mcpServers.map((server, i) => (
-              <div key={i} style={{ marginBottom: '0.5rem' }}>
+              <div key={i} className="recipe-mcp-item">
                 <code>{server.name}</code>
                 {server.command && (
-                  <span style={{ color: 'var(--muted)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
-                    ({server.command}{server.args ? ` ${server.args.join(' ')}` : ''})
+                  <span className="recipe-mcp-command">
+                    {server.command}{server.args ? ` ${server.args.join(' ')}` : ''}
                   </span>
                 )}
               </div>
@@ -211,24 +301,20 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
         </div>
       )}
 
-      <div className="recipe-section">
-        <div className="recipe-header">
-          <span className="recipe-label">Prompt</span>
-          <CopyButton text={prompt} label="Prompt" />
-        </div>
-        <div className="prompt-box">
-          {prompt}
-        </div>
-      </div>
-
       {/* System Prompt */}
       {parsedSession?.systemPrompt && (
         <div className="recipe-section">
           <div className="recipe-header">
-            <span className="recipe-label">System Prompt</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              System Prompt
+            </span>
             <CopyButton text={parsedSession.systemPrompt} label="System Prompt" />
           </div>
-          <div className="prompt-box" style={{ maxHeight: '200px', overflow: 'auto' }}>
+          <div className="prompt-box prompt-box-compact">
             {parsedSession.systemPrompt}
           </div>
         </div>
@@ -238,24 +324,38 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
       {parsedSession?.markdownConfigs && parsedSession.markdownConfigs.length > 0 && (
         <div className="recipe-section">
           <div className="recipe-header">
-            <span className="recipe-label">Config Files</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                <polyline points="13 2 13 9 20 9"/>
+              </svg>
+              Config Files
+            </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="recipe-configs">
             {parsedSession.markdownConfigs.map((config, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button
-                    onClick={() => toggleConfig(config.filename)}
-                    className="toggle-btn"
-                    style={{ padding: '0.25rem 0.5rem' }}
+              <div key={i} className="recipe-config-item">
+                <button
+                  onClick={() => toggleConfig(config.filename)}
+                  className="recipe-config-toggle"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ transform: expandedConfigs.has(config.filename) ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}
                   >
-                    {expandedConfigs.has(config.filename) ? '▼' : '▶'} {config.filename}
-                  </button>
-                  <CopyButton text={config.content} label={config.filename} />
-                </div>
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                  <code>{config.filename}</code>
+                </button>
+                <CopyButton text={config.content} label={config.filename} />
                 {expandedConfigs.has(config.filename) && (
-                  <div className="prompt-box" style={{ marginTop: '0.5rem', maxHeight: '300px', overflow: 'auto' }}>
-                    <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{config.content}</pre>
+                  <div className="recipe-config-content">
+                    <pre>{config.content}</pre>
                   </div>
                 )}
               </div>
@@ -264,15 +364,22 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
         </div>
       )}
 
+      {/* Raw Session Data */}
       {parsedSession && !parsedSession.manual && (
-        <div className="recipe-section">
+        <div className="recipe-section recipe-section-raw">
           <div className="recipe-header">
-            <span className="recipe-label">Raw Session Data</span>
+            <span className="recipe-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="4 17 10 11 4 5"/>
+                <line x1="12" y1="19" x2="20" y2="19"/>
+              </svg>
+              Raw Session Data
+            </span>
             <button
               onClick={() => setShowRaw(!showRaw)}
-              className="toggle-btn"
+              className="recipe-toggle-btn"
             >
-              {showRaw ? 'Hide' : 'Show'} Raw
+              {showRaw ? 'Hide' : 'Show'}
             </button>
           </div>
           {showRaw && (
@@ -284,10 +391,18 @@ export function RecipePanel({ prompt, model, harness, sessionData }: RecipePanel
         </div>
       )}
 
+      {/* Tip */}
       <div className="recipe-tip">
-        <strong>Tip:</strong> Copy the prompt and adapt it for your own project.
-        The key is understanding why this prompt worked, not reproducing it exactly.
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <div>
+          <strong>Pro tip:</strong> Copy the prompt and adapt it for your own project.
+          The key is understanding <em>why</em> this prompt worked, not reproducing it exactly.
+        </div>
       </div>
-    </div>
+    </section>
   )
 }
