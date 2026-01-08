@@ -1,81 +1,109 @@
 # Oneshot
 
-Showcase verified AI code transformations. One prompt, one commit.
+**Showcase verified AI code transformations. One prompt, one commit.**
 
-## Quick Start
+Oneshot is a platform where developers share reproducible AI-powered code transformations. Each "shot" captures exactly what prompt, model, and tool produced a specific code change—so others can learn, verify, and replicate impressive results.
+
+## For CLI Users
+
+Want to submit your AI-assisted work to the Oneshot gallery?
+
+**[Get started with the CLI →](./packages/cli/README.md)**
+
+Quick preview:
+
+```bash
+# Install the CLI
+npm install -g @oneshot/cli
+
+# Login with GitHub
+oneshot login
+
+# After making AI-assisted changes, commit and submit
+git add . && git commit -m "Add feature with Claude"
+oneshot submit --title "Built a feature with AI" --type feature
+```
+
+## For Contributors
+
+Want to run Oneshot locally or contribute to the project?
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 - A Neon database (free tier works)
+- GitHub OAuth app credentials
 
-### Setup
+### Development Setup
 
-1. **Install dependencies**
+1. **Clone and install**
    ```bash
+   git clone https://github.com/yourusername/oneshot.git
+   cd oneshot
    npm install
    ```
 
-2. **Configure database**
+2. **Configure environment**
    ```bash
    cd packages/web
    cp .env.example .env.local
-   # Edit .env.local with your Neon DATABASE_URL
    ```
 
-3. **Push database schema**
+   Edit `.env.local` with:
+   - `DATABASE_URL` - Your Neon Postgres connection string
+   - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` - GitHub OAuth credentials
+   - `NEXTAUTH_SECRET` - Random string for session encryption
+   - `NEXTAUTH_URL` - `http://localhost:3000` for local dev
+
+3. **Initialize database**
    ```bash
-   cd packages/web
    npm run db:push
    ```
 
-4. **Start the web app**
+4. **Start development**
    ```bash
    npm run dev
    ```
 
-5. **Build the CLI**
+   This starts the web app at `http://localhost:3000`
+
+5. **Build the CLI** (optional, for testing)
    ```bash
    npm run build:cli
+   cd packages/cli && npm link
    ```
 
-### Using the CLI
-
-After making an AI-assisted change in your repo:
-
-```bash
-# Commit your changes
-git add . && git commit -m "Add feature with AI"
-
-# Submit to Oneshot
-cd /path/to/your/repo
-node /path/to/oneshot/packages/cli/dist/index.js submit --title "My AI Feature"
-```
-
-Or set up globally:
-```bash
-cd packages/cli
-npm link
-oneshot submit --title "My AI Feature"
-```
-
-## Project Structure
+### Project Structure
 
 ```
 oneshot/
 ├── packages/
-│   ├── web/          # Next.js web app (Gallery, Shot detail)
+│   ├── web/          # Next.js web app (Gallery, API, Auth)
 │   └── cli/          # CLI for submitting shots
 ├── package.json      # Root monorepo config
-└── pnpm-workspace.yaml
+└── README.md
 ```
 
-## Phase 1 (Current)
+## How It Works
 
-This is the minimal end-to-end slice:
-- CLI: `oneshot submit` with Claude Code extraction
-- Web: Simple gallery + shot detail page
-- API: POST /api/shots endpoint
-- Auth: API key (no OAuth yet)
+1. **Create** - Use an AI coding tool (Claude Code, Cursor, Codex) to make changes
+2. **Commit** - Commit your AI-assisted changes to git
+3. **Submit** - Run `oneshot submit` to capture the shot
+4. **Share** - Your shot appears in the gallery with full provenance
 
-See the full spec at `.claude/plans/hashed-honking-raven.md`
+Each shot includes:
+- The exact prompt you used
+- Model and tool information
+- Git diff (before/after commits)
+- Live preview links (if available)
+- Token usage and generation stats
+
+## Links
+
+- **Gallery**: [oneshot-web.vercel.app](https://oneshot-web.vercel.app)
+- **CLI Docs**: [packages/cli/README.md](./packages/cli/README.md)
+
+## License
+
+MIT
