@@ -7,6 +7,7 @@ import { UpvoteButton } from '@/components/UpvoteButton'
 import { ShareButton } from '@/components/ShareButton'
 import { Comments } from '@/components/Comments'
 import { RecipePanel } from '@/components/RecipePanel'
+import type { Metadata } from 'next'
 
 // Helper to compute diff stats from raw diff text
 function computeDiffStats(diff: string) {
@@ -67,6 +68,51 @@ export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ id: string }>
+}
+
+// Generate dynamic metadata for sharing
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+
+  const [result] = await db
+    .select({
+      shot: shots,
+      user: users,
+    })
+    .from(shots)
+    .leftJoin(users, eq(shots.userId, users.id))
+    .where(eq(shots.id, id))
+    .limit(1)
+
+  if (!result) {
+    return {
+      title: 'Shot Not Found',
+    }
+  }
+
+  const { shot, user } = result
+  const authorName = user ? `@${user.username}` : 'Anonymous'
+  const stats = shot.diffFilesChanged !== null
+    ? { additions: shot.diffAdditions || 0, deletions: shot.diffDeletions || 0, filesChanged: shot.diffFilesChanged }
+    : computeDiffStats(shot.diff)
+
+  const description = `${formatHarness(shot.harness)} shot by ${authorName}: +${stats.additions}/-${stats.deletions} across ${stats.filesChanged} files using ${shot.model}`
+
+  return {
+    title: shot.title,
+    description,
+    openGraph: {
+      title: shot.title,
+      description,
+      type: 'article',
+      authors: user ? [user.username] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: shot.title,
+      description,
+    },
+  }
 }
 
 export default async function ShotDetailPage({ params }: Props) {
