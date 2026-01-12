@@ -30,6 +30,11 @@ export const shots = pgTable('shots', {
   afterCommitHash: text('after_commit_hash').notNull(),
   diff: text('diff').notNull(),
 
+  // Diff stats (pre-computed to avoid loading full diff)
+  diffFilesChanged: integer('diff_files_changed'),
+  diffAdditions: integer('diff_additions'),
+  diffDeletions: integer('diff_deletions'),
+
   // Preview URLs (optional - for hosted live demos)
   beforePreviewUrl: text('before_preview_url'),
   afterPreviewUrl: text('after_preview_url'),

@@ -19,26 +19,6 @@ interface Props {
   }
 }
 
-// Helper to compute diff stats
-function computeDiffStats(diff: string) {
-  const lines = diff.split('\n')
-  let filesChanged = 0
-  let additions = 0
-  let deletions = 0
-
-  for (const line of lines) {
-    if (line.startsWith('diff --git')) {
-      filesChanged++
-    } else if (line.startsWith('+') && !line.startsWith('+++')) {
-      additions++
-    } else if (line.startsWith('-') && !line.startsWith('---')) {
-      deletions++
-    }
-  }
-
-  return { filesChanged, additions, deletions }
-}
-
 // Format relative time
 function formatRelativeTime(date: Date): string {
   const now = new Date()
@@ -108,8 +88,25 @@ export default async function GalleryPage({ searchParams }: Props) {
   }
 
   // Query shots with filters and sorting
+  // IMPORTANT: Only select columns needed for gallery cards to minimize bandwidth
+  // Excludes: diff, sessionData, prompt (large fields only needed on detail page)
   const baseQuery = db
-    .select()
+    .select({
+      id: shots.id,
+      userId: shots.userId,
+      title: shots.title,
+      type: shots.type,
+      harness: shots.harness,
+      model: shots.model,
+      afterPreviewUrl: shots.afterPreviewUrl,
+      starCount: shots.starCount,
+      commentCount: shots.commentCount,
+      createdAt: shots.createdAt,
+      // Pre-computed diff stats (avoids loading full diff)
+      diffFilesChanged: shots.diffFilesChanged,
+      diffAdditions: shots.diffAdditions,
+      diffDeletions: shots.diffDeletions,
+    })
     .from(shots)
     .orderBy(getOrderBy())
     .limit(50)
@@ -126,11 +123,15 @@ export default async function GalleryPage({ searchParams }: Props) {
 
   const usersMap = new Map(usersResult.map(u => [u.id, u]))
 
-  // Combine into expected format with computed stats
+  // Combine into expected format
   const allShots = shotsResult.map(shot => ({
     shot,
     user: shot.userId ? usersMap.get(shot.userId) || null : null,
-    diffStats: computeDiffStats(shot.diff),
+    diffStats: {
+      filesChanged: shot.diffFilesChanged || 0,
+      additions: shot.diffAdditions || 0,
+      deletions: shot.diffDeletions || 0,
+    },
     relativeTime: formatRelativeTime(new Date(shot.createdAt)),
     harnessDisplay: formatHarness(shot.harness),
   }))

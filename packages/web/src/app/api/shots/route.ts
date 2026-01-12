@@ -8,6 +8,26 @@ import { unstable_noStore as noStore } from 'next/cache'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+// Compute diff stats from raw diff text
+function computeDiffStats(diff: string) {
+  const lines = diff.split('\n')
+  let filesChanged = 0
+  let additions = 0
+  let deletions = 0
+
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      filesChanged++
+    } else if (line.startsWith('+') && !line.startsWith('+++')) {
+      additions++
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      deletions++
+    }
+  }
+
+  return { filesChanged, additions, deletions }
+}
+
 interface AuthResult {
   authenticated: boolean
   userId?: string
@@ -79,6 +99,9 @@ export async function POST(request: NextRequest) {
       ? crypto.createHash('sha256').update(JSON.stringify(body.sessionData)).digest('hex')
       : null
 
+    // Pre-compute diff stats to avoid loading full diff on gallery pages
+    const diffStats = computeDiffStats(body.diff)
+
     const newShot: NewShot = {
       userId: auth.userId || null,
       title: body.title,
@@ -88,6 +111,9 @@ export async function POST(request: NextRequest) {
       beforeCommitHash: body.beforeCommitHash,
       afterCommitHash: body.afterCommitHash,
       diff: body.diff,
+      diffFilesChanged: diffStats.filesChanged,
+      diffAdditions: diffStats.additions,
+      diffDeletions: diffStats.deletions,
       beforePreviewUrl: body.beforePreviewUrl || null,
       afterPreviewUrl: body.afterPreviewUrl || null,
       harness: body.harness,
