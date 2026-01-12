@@ -92,48 +92,32 @@ export default async function ShotDetailPage({ params }: Props) {
 
   return (
     <article className="shot-detail-page">
-      {/* Hero Section with Preview Links */}
+      {/* Hero Section with Preview */}
       {shot.afterPreviewUrl && (
         <section className="shot-hero">
-          <div className="shot-hero-links">
+          <div className="shot-hero-images">
             {shot.beforePreviewUrl && (
-              <a href={shot.beforePreviewUrl} target="_blank" rel="noopener noreferrer" className="shot-preview-link shot-preview-before">
-                <div className="shot-preview-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="3" y1="9" x2="21" y2="9"/>
-                    <line x1="9" y1="21" x2="9" y2="9"/>
-                  </svg>
-                </div>
-                <div className="shot-preview-info">
-                  <span className="shot-preview-label">Before</span>
-                  <span className="shot-preview-action">View live preview</span>
-                </div>
-                <svg className="shot-preview-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15 3 21 3 21 9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
+              <div className="shot-hero-image shot-hero-before">
+                <span className="shot-hero-badge">Before</span>
+                <a href={shot.beforePreviewUrl} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={`https://s.wordpress.com/mshots/v1/${encodeURIComponent(shot.beforePreviewUrl)}?w=900`}
+                    alt="Before preview"
+                    loading="eager"
+                  />
+                </a>
+              </div>
             )}
-            <a href={shot.afterPreviewUrl} target="_blank" rel="noopener noreferrer" className="shot-preview-link shot-preview-after">
-              <div className="shot-preview-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="3" y1="9" x2="21" y2="9"/>
-                  <line x1="9" y1="21" x2="9" y2="9"/>
-                </svg>
-              </div>
-              <div className="shot-preview-info">
-                <span className="shot-preview-label">{shot.beforePreviewUrl ? 'After' : 'Preview'}</span>
-                <span className="shot-preview-action">View live preview</span>
-              </div>
-              <svg className="shot-preview-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                <polyline points="15 3 21 3 21 9"/>
-                <line x1="10" y1="14" x2="21" y2="3"/>
-              </svg>
-            </a>
+            <div className="shot-hero-image shot-hero-after">
+              <span className="shot-hero-badge">{shot.beforePreviewUrl ? 'After' : 'Preview'}</span>
+              <a href={shot.afterPreviewUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={`https://s.wordpress.com/mshots/v1/${encodeURIComponent(shot.afterPreviewUrl)}?w=900`}
+                  alt="After preview"
+                  loading="eager"
+                />
+              </a>
+            </div>
           </div>
         </section>
       )}
