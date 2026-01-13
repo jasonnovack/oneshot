@@ -97,3 +97,52 @@ export const deviceCodes = pgTable('device_codes', {
 
 export type DeviceCode = typeof deviceCodes.$inferSelect
 export type NewDeviceCode = typeof deviceCodes.$inferInsert
+
+// Feature requests from the community
+export const requests = pgTable('requests', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+
+  // Request details
+  type: text('type').notNull(), // model | harness | hosting | plugin | other
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  link: text('link'), // Optional URL for reference
+
+  // Status
+  status: text('status').default('open').notNull(), // open | planned | completed | declined
+
+  // Denormalized counts
+  upvoteCount: integer('upvote_count').default(0),
+  commentCount: integer('comment_count').default(0),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// Upvotes on requests (same pattern as stars)
+export const requestUpvotes = pgTable('request_upvotes', {
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  requestId: uuid('request_id').references(() => requests.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.requestId] }),
+}))
+
+// Comments on requests
+export const requestComments = pgTable('request_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  requestId: uuid('request_id').references(() => requests.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export type Request = typeof requests.$inferSelect
+export type NewRequest = typeof requests.$inferInsert
+export type RequestUpvote = typeof requestUpvotes.$inferSelect
+export type NewRequestUpvote = typeof requestUpvotes.$inferInsert
+export type RequestComment = typeof requestComments.$inferSelect
+export type NewRequestComment = typeof requestComments.$inferInsert
