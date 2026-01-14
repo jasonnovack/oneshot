@@ -53,7 +53,7 @@ Run Oneshot locally and help build the platform.
 
 1. **Clone and install**
    ```bash
-   git clone https://github.com/yourusername/oneshot.git
+   git clone https://github.com/jasonnovack/oneshot.git
    cd oneshot
    npm install
    ```

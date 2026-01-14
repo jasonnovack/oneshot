@@ -13,7 +13,7 @@ npm install -g @oneshot/cli
 ### From source
 
 ```bash
-git clone https://github.com/yourusername/oneshot.git
+git clone https://github.com/jasonnovack/oneshot.git
 cd oneshot
 npm install
 npm run build:cli
@@ -163,7 +163,7 @@ Credentials are stored in `~/.oneshot/config.json`:
   "token": "your-session-token",
   "user": {
     "id": "...",
-    "username": "yourusername"
+    "username": "your-github-username"
   }
 }
 ```
@@ -207,4 +207,4 @@ The CLI tries to find the prompt that led to the specific commit by tracing the 
 
 ## Feedback
 
-Found a bug or have a feature request? [Open an issue](https://github.com/yourusername/oneshot/issues).
+Found a bug or have a feature request? [Open an issue](https://github.com/jasonnovack/oneshot/issues).

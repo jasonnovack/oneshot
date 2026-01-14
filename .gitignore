@@ -38,3 +38,6 @@ coverage/
 drizzle/
 .claude/
 .env*.local
+
+# Playwright MCP
+.playwright-mcp/
