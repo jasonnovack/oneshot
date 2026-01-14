@@ -1,12 +1,43 @@
 {
   "name": "@oneshot/cli",
   "version": "0.1.0",
-  "description": "CLI for submitting shots to Oneshot",
+  "description": "CLI for submitting verified AI code transformations to Oneshot",
+  "author": "Jason Novack",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonnovack/oneshot.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://oneshot-web.vercel.app",
+  "bugs": {
+    "url": "https://github.com/jasonnovack/oneshot/issues"
+  },
+  "keywords": [
+    "ai",
+    "claude",
+    "cursor",
+    "codex",
+    "code-generation",
+    "developer-tools",
+    "cli",
+    "git",
+    "diff",
+    "verification"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "bin": {
     "oneshot": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
   },
