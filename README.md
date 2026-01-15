@@ -28,7 +28,7 @@ Quick preview:
 
 ```bash
 # Install the CLI
-npm install -g @oneshot/cli
+npm install -g oneshot
 
 # Login with GitHub
 oneshot login

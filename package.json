@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=@oneshot/web",
     "build": "npm run build --workspace=@oneshot/web",
-    "build:cli": "npm run build --workspace=@oneshot/cli"
+    "build:cli": "npm run build --workspace=oneshot"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

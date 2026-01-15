@@ -1,5 +1,5 @@
 {
-  "name": "@oneshot/cli",
+  "name": "oneshot",
   "version": "0.1.0",
   "description": "CLI for submitting verified AI code transformations to Oneshot",
   "author": "Jason Novack",
