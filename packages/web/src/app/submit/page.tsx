@@ -43,7 +43,7 @@ git commit -m "Your descriptive commit message"</code></pre>
             <p>
               Install our command-line tool globally via npm:
             </p>
-            <pre><code>npm install -g oneshot</code></pre>
+            <pre><code>npm install -g oneshot-cli</code></pre>
           </div>
         </div>
 

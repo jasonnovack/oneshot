@@ -191,7 +191,7 @@ export default async function GalleryPage({ searchParams }: Props) {
           </p>
           {!hasFilters && (
             <div className="gallery-empty-cta">
-              <code>npm install -g oneshot && oneshot submit</code>
+              <code>npm install -g oneshot-cli && oneshot submit</code>
             </div>
           )}
           {hasFilters && (

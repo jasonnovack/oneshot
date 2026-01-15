@@ -7,7 +7,7 @@ Submit your AI-assisted code transformations to the [Oneshot Gallery](https://on
 ### From npm (recommended)
 
 ```bash
-npm install -g oneshot
+npm install -g oneshot-cli
 ```
 
 ### From source
